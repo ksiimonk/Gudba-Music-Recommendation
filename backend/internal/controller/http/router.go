@@ -1,39 +1,24 @@
 package http
 
 import (
-	"net/http"
+	nethttp "net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func NewRouter() *gin.Engine {
-	router := gin.Default()
+func NewRouter() (*gin.Engine, error) {
+	router := gin.New()
+	router.Use(gin.Logger(), gin.Recovery())
+
+	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
+		return nil, err
+	}
 
 	router.GET("/healthz", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
+		c.JSON(nethttp.StatusOK, gin.H{
 			"message": "ok",
 		})
 	})
 
-	api := router.Group("/api/v1")
-	{
-		api.GET("/tracks", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"tracks": []gin.H{
-					{
-						"id":    1,
-						"title": "Night Walk",
-						"genre": "lo-fi",
-					},
-					{
-						"id":    2,
-						"title": "Blue Jazz",
-						"genre": "jazz",
-					},
-				},
-			})
-		})
-	}
-
-	return router
+	return router, nil
 }

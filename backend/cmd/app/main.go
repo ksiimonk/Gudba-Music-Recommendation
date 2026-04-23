@@ -17,5 +17,7 @@ func main() {
 		log.Fatalf("config error: %v", err)
 	}
 
-	app.Run(cfg)
+	if err := app.Run(cfg); err != nil {
+		log.Fatalf("startup error: %v", err)
+	}
 }
