@@ -7,7 +7,10 @@ import (
 	"time"
 
 	"music-recommender-backend/config"
+	"music-recommender-backend/internal/auth"
 	httpcontroller "music-recommender-backend/internal/controller/http"
+	"music-recommender-backend/internal/repository"
+	"music-recommender-backend/internal/usecase"
 )
 
 func Run(cfg *config.Config) error {
@@ -17,7 +20,17 @@ func Run(cfg *config.Config) error {
 	}
 	defer db.Close()
 
-	router, err := httpcontroller.NewRouter()
+	userRepository := repository.NewUserRepository(db)
+	userUseCase := usecase.NewUserUseCase(userRepository)
+	tokenManager, err := auth.NewTokenManager(cfg.JWTSecret)
+	if err != nil {
+		return err
+	}
+
+	userHandler := httpcontroller.NewUserHandler(userUseCase, tokenManager)
+	authMiddleware := httpcontroller.NewAuthMiddleware(tokenManager)
+
+	router, err := httpcontroller.NewRouter(userHandler, authMiddleware)
 	if err != nil {
 		return err
 	}
