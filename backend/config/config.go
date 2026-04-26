@@ -8,18 +8,20 @@ import (
 )
 
 type Config struct {
-	AppName  string
-	HTTPPort string
-	LogLevel string
-	PGURL    string
+	AppName   string
+	HTTPPort  string
+	LogLevel  string
+	PGURL     string
+	JWTSecret string
 }
 
 func NewConfig() (*Config, error) {
 	cfg := &Config{
-		AppName:  getEnv("APP_NAME"),
-		HTTPPort: getEnv("HTTP_PORT"),
-		LogLevel: getEnv("LOG_LEVEL"),
-		PGURL:    getEnv("PG_URL"),
+		AppName:   getEnv("APP_NAME"),
+		HTTPPort:  getEnv("HTTP_PORT"),
+		LogLevel:  getEnv("LOG_LEVEL"),
+		PGURL:     getEnv("PG_URL"),
+		JWTSecret: getEnv("JWT_SECRET"),
 	}
 
 	var missing []string
@@ -31,6 +33,7 @@ func NewConfig() (*Config, error) {
 		{name: "HTTP_PORT", value: cfg.HTTPPort},
 		{name: "LOG_LEVEL", value: cfg.LogLevel},
 		{name: "PG_URL", value: cfg.PGURL},
+		{name: "JWT_SECRET", value: cfg.JWTSecret},
 	} {
 		if envVar.value == "" {
 			missing = append(missing, envVar.name)
