@@ -21,16 +21,22 @@ func Run(cfg *config.Config) error {
 	defer db.Close()
 
 	userRepository := repository.NewUserRepository(db)
+	trackRepository := repository.NewTrackRepository(db)
+	playlistRepository := repository.NewPlaylistRepository(db)
 	userUseCase := usecase.NewUserUseCase(userRepository)
+	trackUseCase := usecase.NewTrackUseCase(trackRepository)
+	playlistUseCase := usecase.NewPlaylistUseCase(playlistRepository)
 	tokenManager, err := auth.NewTokenManager(cfg.JWTSecret)
 	if err != nil {
 		return err
 	}
 
 	userHandler := httpcontroller.NewUserHandler(userUseCase, tokenManager)
+	trackHandler := httpcontroller.NewTrackHandler(trackUseCase)
+	playlistHandler := httpcontroller.NewPlaylistHandler(playlistUseCase)
 	authMiddleware := httpcontroller.NewAuthMiddleware(tokenManager)
 
-	router, err := httpcontroller.NewRouter(userHandler, authMiddleware)
+	router, err := httpcontroller.NewRouter(userHandler, authMiddleware, trackHandler, playlistHandler)
 	if err != nil {
 		return err
 	}
