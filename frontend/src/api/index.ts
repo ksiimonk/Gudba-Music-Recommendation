@@ -1,1 +1,5 @@
+export { loginUser, registerUser } from './auth'
 export { API_BASE_URL, ApiError, apiClient, apiGet } from './client'
+export { getApiErrorMessage } from './errors'
+export { getPlaylistById, listPlaylists } from './playlists'
+export { getTrackById, listTracks } from './tracks'

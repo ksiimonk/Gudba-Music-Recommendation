@@ -311,3 +311,24 @@ func TestMeRouteUnauthorized(t *testing.T) {
 		t.Fatalf("status = %d, want %d", response.Code, nethttp.StatusUnauthorized)
 	}
 }
+
+func TestCorsPreflightAllowsLocalFrontend(t *testing.T) {
+	t.Parallel()
+
+	router := newTestRouter(t, &fakeUserRegistrationUseCase{}, &fakeTokenManager{})
+
+	request := httptest.NewRequest(nethttp.MethodOptions, "/api/v1/auth/login", nil)
+	request.Header.Set("Origin", "http://127.0.0.1:5173")
+	request.Header.Set("Access-Control-Request-Method", nethttp.MethodPost)
+
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	if response.Code != nethttp.StatusNoContent {
+		t.Fatalf("status = %d, want %d", response.Code, nethttp.StatusNoContent)
+	}
+
+	if response.Header().Get("Access-Control-Allow-Origin") != "http://127.0.0.1:5173" {
+		t.Fatalf("Access-Control-Allow-Origin = %q", response.Header().Get("Access-Control-Allow-Origin"))
+	}
+}
