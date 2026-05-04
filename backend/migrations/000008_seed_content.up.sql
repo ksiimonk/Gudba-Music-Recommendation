@@ -167,7 +167,7 @@ INSERT INTO track_genres (track_id, genre_id) VALUES
 
 -- Seed owner for public demo playlists. Password is a local fixture hash.
 INSERT INTO users (id, email, password_hash) VALUES
-    (1, 'seed@music.local', '$2a$10$7EqJtq98hPqEX7fNZaFWoOhi96M5gETv0DkgMvkXzBDEpx2Yzzvfy')
+    (1, 'seed@music.local', '$2a$10$npUgIfKQZ/otVbHBxtuU8eaEOJjcDKyYXvo7AumcDSFHUf0cAuiVC')
 ON CONFLICT (id) DO NOTHING;
 
 SELECT setval(pg_get_serial_sequence('users', 'id'), GREATEST((SELECT MAX(id) FROM users), 1), true);

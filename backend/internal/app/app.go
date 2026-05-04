@@ -25,11 +25,13 @@ func Run(cfg *config.Config) error {
 	playlistRepository := repository.NewPlaylistRepository(db)
 	genreRepository := repository.NewGenreRepository(db)
 	artistRepository := repository.NewArtistRepository(db)
+	onboardingRepository := repository.NewOnboardingRepository(db)
 	userUseCase := usecase.NewUserUseCase(userRepository)
 	trackUseCase := usecase.NewTrackUseCase(trackRepository)
 	playlistUseCase := usecase.NewPlaylistUseCase(playlistRepository)
 	genreUseCase := usecase.NewGenreUseCase(genreRepository)
 	artistUseCase := usecase.NewArtistUseCase(artistRepository)
+	onboardingUseCase := usecase.NewOnboardingUseCase(onboardingRepository)
 	tokenManager, err := auth.NewTokenManager(cfg.JWTSecret)
 	if err != nil {
 		return err
@@ -40,9 +42,10 @@ func Run(cfg *config.Config) error {
 	playlistHandler := httpcontroller.NewPlaylistHandler(playlistUseCase)
 	genreHandler := httpcontroller.NewGenreHandler(genreUseCase)
 	artistHandler := httpcontroller.NewArtistHandler(artistUseCase)
+	onboardingHandler := httpcontroller.NewOnboardingHandler(onboardingUseCase)
 	authMiddleware := httpcontroller.NewAuthMiddleware(tokenManager)
 
-	router, err := httpcontroller.NewRouter(userHandler, authMiddleware, trackHandler, playlistHandler, genreHandler, artistHandler)
+	router, err := httpcontroller.NewRouter(userHandler, authMiddleware, trackHandler, playlistHandler, genreHandler, artistHandler, onboardingHandler)
 	if err != nil {
 		return err
 	}

@@ -17,6 +17,8 @@ const (
 	registerRoute       = "/register"
 	loginRoute          = "/login"
 	meRoute             = "/me"
+	onboardingRoute     = "/me/onboarding"
+	profileRoute        = "/me/profile"
 	tracksRoute         = "/tracks"
 	trackDetailRoute    = "/tracks/:id"
 	playlistsRoute      = "/playlists"
@@ -65,6 +67,7 @@ func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHa
 		var playlistHandler *PlaylistHandler
 		var genreHandler *GenreHandler
 		var artistHandler *ArtistHandler
+		var onboardingHandler *OnboardingHandler
 
 		for _, handler := range routeHandlers {
 			switch typedHandler := handler.(type) {
@@ -76,6 +79,8 @@ func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHa
 				genreHandler = typedHandler
 			case *ArtistHandler:
 				artistHandler = typedHandler
+			case *OnboardingHandler:
+				onboardingHandler = typedHandler
 			}
 		}
 
@@ -95,6 +100,11 @@ func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHa
 
 		if artistHandler != nil {
 			api.GET(artistsRoute, artistHandler.ListArtists)
+		}
+
+		if onboardingHandler != nil {
+			api.POST(onboardingRoute, authMiddleware.RequireAuth, onboardingHandler.SaveOnboarding)
+			api.GET(profileRoute, authMiddleware.RequireAuth, onboardingHandler.GetProfile)
 		}
 	}
 
