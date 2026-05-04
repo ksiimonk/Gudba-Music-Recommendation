@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getProfile, listArtists, listGenres, listPlaylists, listTracks } from '../api'
+import { getProfile, listArtists, listGenres, listPlaylists, listPlaylistRecommendations, listTrackRecommendations, listTracks } from '../api'
 import { useAuth } from '../auth/AuthContext'
+import { usePlayer } from '../context/PlayerContext'
 import { AppShell } from '../components/AppShell'
-import { CoverTile } from '../components/CoverTile'
 import { PlaylistCard } from '../components/PlaylistCard'
 import { TrackRow } from '../components/TrackRow'
 import { ROUTES } from '../config/routes'
 import { PLAYLIST_COVER_URLS, getPlaylistCoverUrl } from '../data/musicContent'
 import type { Artist, Genre, Playlist, Track } from '../types'
+import type { PlaylistRecommendation, TrackRecommendation } from '../api/recommendations'
 
 export function HomePage() {
   const { isLoading: authLoading, token, user } = useAuth()
+  const { playTrack, likeTrack, skipTrack } = usePlayer()
 
   const [genres, setGenres] = useState<Genre[]>([])
   const [artists, setArtists] = useState<Artist[]>([])
@@ -18,8 +20,15 @@ export function HomePage() {
   const [tracks, setTracks] = useState<Track[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [hasProfile, setHasProfile] = useState(true)
+  const [hasProfile, setHasProfile] = useState(false)
   const [profileChecking, setProfileChecking] = useState(true)
+
+  const [recommendations, setRecommendations] = useState<TrackRecommendation[]>([])
+  const [recsLoading, setRecsLoading] = useState(false)
+  const [recsError, setRecsError] = useState(false)
+
+  const [playlistRecs, setPlaylistRecs] = useState<PlaylistRecommendation[]>([])
+  const [plRecsLoading, setPlRecsLoading] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -39,25 +48,19 @@ export function HomePage() {
         }
       })
       .catch(() => {
-        if (isMounted) {
-          setError('Не удалось загрузить данные. Проверь, запущен ли backend.')
-        }
+        if (isMounted) setError('Не удалось загрузить данные. Проверь, запущен ли backend.')
       })
       .finally(() => {
-        if (isMounted) {
-          setIsLoading(false)
-        }
+        if (isMounted) setIsLoading(false)
       })
 
-    return () => {
-      isMounted = false
-    }
+    return () => { isMounted = false }
   }, [])
 
   useEffect(() => {
     if (authLoading || !token) {
       setProfileChecking(false)
-      if (!token) setHasProfile(false)
+      setHasProfile(false)
       return
     }
 
@@ -67,9 +70,36 @@ export function HomePage() {
       .then((res) => {
         if (isMounted) {
           const p = res.profile
-          setHasProfile(
-            p.favorite_genre_ids.length > 0 || p.favorite_artist_ids.length > 0 || p.starter_track_ids.length > 0,
-          )
+          const has = p.favorite_genre_ids.length > 0 || p.favorite_artist_ids.length > 0 || p.starter_track_ids.length > 0
+          setHasProfile(has)
+
+          if (has) {
+            setRecsLoading(true)
+            setPlRecsLoading(true)
+
+            listTrackRecommendations(token, 6)
+              .then((recRes) => {
+                if (isMounted) {
+                  setRecommendations(recRes.recommendations)
+                  setRecsError(false)
+                }
+              })
+              .catch(() => {
+                if (isMounted) setRecsError(true)
+              })
+              .finally(() => {
+                if (isMounted) setRecsLoading(false)
+              })
+
+            listPlaylistRecommendations(token, 6)
+              .then((plRes) => {
+                if (isMounted) setPlaylistRecs(plRes.recommendations)
+              })
+              .catch(() => {})
+              .finally(() => {
+                if (isMounted) setPlRecsLoading(false)
+              })
+          }
         }
       })
       .catch(() => {
@@ -81,15 +111,6 @@ export function HomePage() {
 
     return () => { isMounted = false }
   }, [authLoading, token])
-
-  const personalTiles = useMemo(() => {
-    return genres.slice(0, 6).map((genre, index) => ({
-      title: genre.name,
-      subtitle: 'Подборка',
-      coverUrl: PLAYLIST_COVER_URLS[index % PLAYLIST_COVER_URLS.length],
-      href: ROUTES.tracks,
-    }))
-  }, [genres])
 
   const quickAccess = useMemo(() => {
     const artistItems = artists.slice(0, 4).map((artist, index) => ({
@@ -116,6 +137,18 @@ export function HomePage() {
 
   const moodPlaylists = useMemo(() => playlists.slice(0, 6), [playlists])
 
+  function handlePlayRec(rec: TrackRecommendation) {
+    playTrack(rec.track)
+  }
+
+  function handleLikeRec(rec: TrackRecommendation) {
+    likeTrack(rec.track)
+  }
+
+  function handleSkipRec(rec: TrackRecommendation) {
+    skipTrack(rec.track)
+  }
+
   function renderOnboardingCTA() {
     if (authLoading || profileChecking) return null
 
@@ -139,6 +172,85 @@ export function HomePage() {
     }
 
     return null
+  }
+
+  function renderRecommendations() {
+    if (recsLoading) {
+      return (
+        <section className="feed-section feed-rec-fallback" aria-labelledby="rec-title">
+          <div className="section-heading">
+            <h2 id="rec-title">Только для тебя</h2>
+          </div>
+          <p className="page-state">Загружаем рекомендации...</p>
+        </section>
+      )
+    }
+
+    if (recsError || recommendations.length === 0) {
+      return null
+    }
+
+    return (
+      <section className="feed-section feed-rec" aria-labelledby="rec-title">
+        <div className="section-heading">
+          <h2 id="rec-title">Только для тебя</h2>
+        </div>
+        <div className="rec-track-list">
+          {recommendations.map((rec, index) => (
+            <div className="rec-track-row" key={`${rec.track.id}-${index}`}>
+              <button className="rec-track-play" type="button" aria-label={`Слушать ${rec.track.title}`} onClick={() => handlePlayRec(rec)}>
+                ▶
+              </button>
+              <img src={rec.track.cover_url || PLAYLIST_COVER_URLS[0]} alt="" />
+              <div className="rec-track-info">
+                <strong>{rec.track.title}</strong>
+                <span>{rec.track.artist.name}</span>
+                <span className="rec-explanation">{rec.explanation}</span>
+              </div>
+              <div className="rec-track-score">
+                <div className="rec-score-bar">
+                  <div className="rec-score-fill" style={{ width: `${Math.min(rec.score, 100)}%` }} />
+                </div>
+                <span>{Math.round(rec.score)}</span>
+              </div>
+              <div className="rec-track-actions">
+                <button className="rec-like-btn" type="button" aria-label="Нравится" title="Нравится" onClick={() => handleLikeRec(rec)}>
+                  ♥
+                </button>
+                <button className="rec-skip-btn" type="button" aria-label="Не нравится" title="Не нравится" onClick={() => handleSkipRec(rec)}>
+                  ✕
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  function renderPlaylistRecommendations() {
+    if (plRecsLoading) return null
+
+    if (playlistRecs.length === 0) return null
+
+    return (
+      <section className="feed-section" aria-labelledby="pl-recs-title">
+        <div className="section-heading">
+          <h2 id="pl-recs-title">Плейлисты под твой вкус</h2>
+        </div>
+        <div className="playlist-grid">
+          {playlistRecs.map((plRec, index) => (
+            <div className="playlist-rec-card" key={`${plRec.playlist.id}-${index}`}>
+              <PlaylistCard
+                playlist={plRec.playlist}
+                coverUrl={getPlaylistCoverUrl(index)}
+              />
+              <span className="rec-explanation">{plRec.explanation}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    )
   }
 
   if (isLoading) {
@@ -185,6 +297,10 @@ export function HomePage() {
           </section>
         )}
 
+        {renderRecommendations()}
+
+        {renderPlaylistRecommendations()}
+
         {quickAccess.length > 0 && (
           <section className="feed-section" aria-labelledby="quick-access-title">
             <div className="section-heading">
@@ -205,41 +321,20 @@ export function HomePage() {
           </section>
         )}
 
-        {personalTiles.length > 0 && (
-          <section className="feed-section" aria-labelledby="personal-title">
+        {popularTracks.length > 0 && (
+          <section className="feed-section feed-tracks" aria-labelledby="popular-tracks-title">
             <div className="section-heading">
-              <h2 id="personal-title">Только для тебя</h2>
+              <h2 id="popular-tracks-title">Популярные треки</h2>
+              <a href={ROUTES.tracks}>Все треки</a>
             </div>
-            <div className="card-row">
-              {personalTiles.map((item) => (
-                <CoverTile
-                  title={item.title}
-                  subtitle={item.subtitle}
-                  coverUrl={item.coverUrl}
-                  href={item.href}
-                  key={`${item.href}-${item.title}`}
-                />
-              ))}
-            </div>
-          </section>
-        )}
 
-        <section className="feed-section feed-tracks" aria-labelledby="popular-tracks-title">
-          <div className="section-heading">
-            <h2 id="popular-tracks-title">Популярные треки</h2>
-            <a href={ROUTES.tracks}>Все треки</a>
-          </div>
-
-          {popularTracks.length === 0 ? (
-            <p className="page-state">Треки появятся после запуска backend.</p>
-          ) : (
             <div className="track-list">
               {popularTracks.map((track, index) => (
                 <TrackRow track={track} index={index + 1} key={track.id} />
               ))}
             </div>
-          )}
-        </section>
+          </section>
+        )}
 
         {moodPlaylists.length > 0 && (
           <section className="feed-section" aria-labelledby="mood-playlists-title">

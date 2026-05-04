@@ -1555,3 +1555,170 @@ button {
 .onboarding-cta .auth-submit:hover {
   background: #1fdf64;
 }
+
+/* ---- Recommendation rows on Home ---- */
+
+.feed-rec {
+  margin-bottom: 8px;
+}
+
+.rec-track-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rec-track-row {
+  display: grid;
+  grid-template-columns: 36px 48px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: transparent;
+  transition: background 0.15s;
+  cursor: default;
+}
+
+.rec-track-row:hover {
+  background: #1a1a1a;
+}
+
+.rec-track-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.rec-track-row:hover .rec-track-play {
+  opacity: 1;
+  background: #1db954;
+  color: #000;
+}
+
+.rec-track-row img {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.rec-track-info {
+  min-width: 0;
+}
+
+.rec-track-info strong {
+  display: block;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rec-track-info span {
+  display: block;
+  font-size: 12px;
+  color: #a7a7a7;
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rec-explanation {
+  color: #1db954 !important;
+  font-size: 11px !important;
+  font-weight: 700;
+  margin-top: 2px !important;
+}
+
+.rec-track-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 60px;
+}
+
+.rec-score-bar {
+  width: 40px;
+  height: 4px;
+  background: #2a2a2a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.rec-score-fill {
+  height: 100%;
+  background: #1db954;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.rec-track-score span {
+  font-size: 12px;
+  font-weight: 800;
+  color: #a7a7a7;
+  min-width: 22px;
+}
+
+.rec-track-actions {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.rec-track-row:hover .rec-track-actions {
+  opacity: 1;
+}
+
+.rec-like-btn,
+.rec-skip-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #a7a7a7;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.rec-like-btn:hover {
+  color: #1db954;
+  background: rgba(29, 185, 84, 0.15);
+}
+
+.rec-skip-btn:hover {
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.15);
+}
+
+.feed-rec-fallback {
+  margin-bottom: 8px;
+}
+
+.playlist-rec-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.playlist-rec-card .rec-explanation {
+  margin-top: 0 !important;
+  padding: 0 4px;
+}

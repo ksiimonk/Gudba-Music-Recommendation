@@ -26,12 +26,18 @@ func Run(cfg *config.Config) error {
 	genreRepository := repository.NewGenreRepository(db)
 	artistRepository := repository.NewArtistRepository(db)
 	onboardingRepository := repository.NewOnboardingRepository(db)
+	eventRepository := repository.NewEventRepository(db)
+	recommendationRepository := repository.NewRecommendationRepository(db)
+	analyticsRepository := repository.NewAnalyticsRepository(db)
 	userUseCase := usecase.NewUserUseCase(userRepository)
 	trackUseCase := usecase.NewTrackUseCase(trackRepository)
 	playlistUseCase := usecase.NewPlaylistUseCase(playlistRepository)
 	genreUseCase := usecase.NewGenreUseCase(genreRepository)
 	artistUseCase := usecase.NewArtistUseCase(artistRepository)
 	onboardingUseCase := usecase.NewOnboardingUseCase(onboardingRepository)
+	eventUseCase := usecase.NewEventUseCase(eventRepository)
+	recommendationUseCase := usecase.NewRecommendationUseCase(recommendationRepository)
+	analyticsUseCase := usecase.NewAnalyticsUseCase(analyticsRepository)
 	tokenManager, err := auth.NewTokenManager(cfg.JWTSecret)
 	if err != nil {
 		return err
@@ -43,9 +49,12 @@ func Run(cfg *config.Config) error {
 	genreHandler := httpcontroller.NewGenreHandler(genreUseCase)
 	artistHandler := httpcontroller.NewArtistHandler(artistUseCase)
 	onboardingHandler := httpcontroller.NewOnboardingHandler(onboardingUseCase)
+	eventHandler := httpcontroller.NewEventHandler(eventUseCase)
+	recommendationHandler := httpcontroller.NewRecommendationHandler(recommendationUseCase)
+	analyticsHandler := httpcontroller.NewAnalyticsHandler(analyticsUseCase)
 	authMiddleware := httpcontroller.NewAuthMiddleware(tokenManager)
 
-	router, err := httpcontroller.NewRouter(userHandler, authMiddleware, trackHandler, playlistHandler, genreHandler, artistHandler, onboardingHandler)
+	router, err := httpcontroller.NewRouter(userHandler, authMiddleware, trackHandler, playlistHandler, genreHandler, artistHandler, onboardingHandler, eventHandler, recommendationHandler, analyticsHandler)
 	if err != nil {
 		return err
 	}

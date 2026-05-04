@@ -25,6 +25,16 @@ const (
 	playlistDetailRoute = "/playlists/:id"
 	genresRoute         = "/genres"
 	artistsRoute        = "/artists"
+	eventRoute          = "/events"
+	trackPlayRoute      = "/tracks/:id/play"
+	trackLikeRoute      = "/tracks/:id/like"
+	trackDislikeRoute   = "/tracks/:id/dislike"
+	trackSkipRoute      = "/tracks/:id/skip"
+	playlistOpenRoute   = "/playlists/:id/open"
+	recommendationsTracksRoute    = "/recommendations/tracks"
+	recommendationsPlaylistsRoute = "/recommendations/playlists"
+	adminStatsRoute               = "/admin/stats"
+	adminMetricsRoute             = "/admin/recommendation-metrics"
 
 	corsAllowHeaders = "Authorization, Content-Type"
 	corsAllowMethods = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
@@ -68,6 +78,9 @@ func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHa
 		var genreHandler *GenreHandler
 		var artistHandler *ArtistHandler
 		var onboardingHandler *OnboardingHandler
+		var eventHandler *EventHandler
+		var recommendationHandler *RecommendationHandler
+		var analyticsHandler *AnalyticsHandler
 
 		for _, handler := range routeHandlers {
 			switch typedHandler := handler.(type) {
@@ -81,6 +94,12 @@ func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHa
 				artistHandler = typedHandler
 			case *OnboardingHandler:
 				onboardingHandler = typedHandler
+			case *EventHandler:
+				eventHandler = typedHandler
+			case *RecommendationHandler:
+				recommendationHandler = typedHandler
+			case *AnalyticsHandler:
+				analyticsHandler = typedHandler
 			}
 		}
 
@@ -105,6 +124,25 @@ func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHa
 		if onboardingHandler != nil {
 			api.POST(onboardingRoute, authMiddleware.RequireAuth, onboardingHandler.SaveOnboarding)
 			api.GET(profileRoute, authMiddleware.RequireAuth, onboardingHandler.GetProfile)
+		}
+
+		if eventHandler != nil {
+			api.POST(eventRoute, authMiddleware.RequireAuth, eventHandler.RecordEvent)
+			api.POST(trackPlayRoute, authMiddleware.RequireAuth, eventHandler.RecordTrackPlay)
+			api.POST(trackLikeRoute, authMiddleware.RequireAuth, eventHandler.RecordTrackLike)
+			api.POST(trackDislikeRoute, authMiddleware.RequireAuth, eventHandler.RecordTrackDislike)
+			api.POST(trackSkipRoute, authMiddleware.RequireAuth, eventHandler.RecordTrackSkip)
+			api.POST(playlistOpenRoute, authMiddleware.RequireAuth, eventHandler.RecordPlaylistOpen)
+		}
+
+		if recommendationHandler != nil {
+			api.GET(recommendationsTracksRoute, authMiddleware.RequireAuth, recommendationHandler.ListTrackRecommendations)
+			api.GET(recommendationsPlaylistsRoute, authMiddleware.RequireAuth, recommendationHandler.ListPlaylistRecommendations)
+		}
+
+		if analyticsHandler != nil {
+			api.GET(adminStatsRoute, authMiddleware.RequireAuth, analyticsHandler.GetStats)
+			api.GET(adminMetricsRoute, authMiddleware.RequireAuth, analyticsHandler.GetRecommendationMetrics)
 		}
 	}
 
