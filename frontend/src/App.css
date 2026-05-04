@@ -1231,3 +1231,327 @@ button {
     max-width: 960px;
   }
 }
+
+/* ---- Onboarding ---- */
+
+.onboarding-page {
+  min-height: 100vh;
+  background: #080808;
+  color: #f5f5f5;
+}
+
+.onboarding-header {
+  display: flex;
+  align-items: center;
+  padding: 20px 24px;
+}
+
+.onboarding-header .sidebar-brand {
+  font-size: 22px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.onboarding-content {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 24px 120px;
+}
+
+.onboarding-auth-prompt {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.onboarding-auth-prompt h2 {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.onboarding-auth-prompt p {
+  color: #a7a7a7;
+  margin-bottom: 28px;
+  font-size: 16px;
+}
+
+.onboarding-wizard {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ---- Progress ---- */
+
+.onboarding-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.onboarding-progress-bar {
+  flex: 1;
+  height: 3px;
+  background: #2a2a2a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.onboarding-progress-fill {
+  height: 100%;
+  background: #1db954;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.onboarding-step-label {
+  color: #a7a7a7;
+  font-size: 12px;
+  font-weight: 800;
+  min-width: 44px;
+  text-align: right;
+}
+
+/* ---- Step content ---- */
+
+.onboarding-step h2 {
+  font-size: 28px;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.onboarding-step p {
+  color: #a7a7a7;
+  font-size: 15px;
+  margin-bottom: 24px;
+}
+
+/* ---- Chips (genres & contexts) ---- */
+
+.onboarding-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.onboarding-chip {
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 999px;
+  background: #1f1f1f;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.onboarding-chip:hover {
+  background: #2a2a2a;
+}
+
+.onboarding-chip.selected {
+  background: #1db954;
+  color: #000;
+}
+
+/* ---- Artist cards ---- */
+
+.onboarding-artist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.onboarding-artist-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 12px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: #181818;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.onboarding-artist-card:hover {
+  background: #282828;
+}
+
+.onboarding-artist-card.selected {
+  background: #1e3a2a;
+}
+
+.onboarding-artist-card img {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.onboarding-artist-card span {
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* ---- Track rows for selection ---- */
+
+.onboarding-track-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.onboarding-track-row {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.onboarding-track-row:hover {
+  background: #1f1f1f;
+}
+
+.onboarding-track-row.selected {
+  background: #1e3a2a;
+}
+
+.onboarding-track-row.selected:hover {
+  background: #255035;
+}
+
+.onboarding-track-row img {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.onboarding-track-info {
+  min-width: 0;
+}
+
+.onboarding-track-info strong {
+  display: block;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onboarding-track-info span {
+  display: block;
+  font-size: 12px;
+  color: #a7a7a7;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onboarding-check {
+  color: #1db954;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+/* ---- Navigation ---- */
+
+.onboarding-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.onboarding-nav-right {
+  margin-left: auto;
+}
+
+.onboarding-nav .auth-submit {
+  min-height: 48px;
+  padding: 0 32px;
+  font-size: 15px;
+}
+
+.onboarding-nav .auth-submit.secondary {
+  background: transparent;
+  color: #a7a7a7;
+  font-weight: 700;
+}
+
+.onboarding-nav .auth-submit.secondary:hover {
+  color: #fff;
+}
+
+.onboarding-error {
+  color: #e74c3c;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 12px;
+}
+
+/* ---- Onboarding CTA on Home ---- */
+
+.onboarding-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 36px 24px;
+  background: #1f1f1f;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.onboarding-cta h2 {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.onboarding-cta p {
+  color: #a7a7a7;
+  max-width: 420px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.onboarding-cta .auth-submit {
+  margin-top: 8px;
+  min-height: 48px;
+  padding: 0 32px;
+  font-size: 15px;
+  border: 0;
+  border-radius: 999px;
+  color: #07130d;
+  background: #1ed760;
+  font-weight: 900;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.onboarding-cta .auth-submit:hover {
+  background: #1fdf64;
+}

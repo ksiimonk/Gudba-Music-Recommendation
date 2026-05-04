@@ -2,6 +2,7 @@ export const ROUTES = {
   home: '/',
   login: '/login',
   register: '/register',
+  onboarding: '/onboarding',
   tracks: '/tracks',
   playlists: '/playlists',
 } as const

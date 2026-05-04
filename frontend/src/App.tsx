@@ -5,6 +5,7 @@ import {
 } from './config/routes'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
+import { OnboardingPage } from './pages/OnboardingPage'
 import { PlaylistDetailPage } from './pages/PlaylistDetailPage'
 import { PlaylistListPage } from './pages/PlaylistListPage'
 import { RegisterPage } from './pages/RegisterPage'
@@ -21,6 +22,10 @@ function App() {
 
   if (pathname === ROUTES.register) {
     return <RegisterPage />
+  }
+
+  if (pathname === ROUTES.onboarding) {
+    return <OnboardingPage />
   }
 
   if (pathname === ROUTES.tracks) {

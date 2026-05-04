@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { listArtists, listGenres, listPlaylists, listTracks } from '../api'
+import { getProfile, listArtists, listGenres, listPlaylists, listTracks } from '../api'
+import { useAuth } from '../auth/AuthContext'
 import { AppShell } from '../components/AppShell'
 import { CoverTile } from '../components/CoverTile'
 import { PlaylistCard } from '../components/PlaylistCard'
@@ -9,12 +10,16 @@ import { PLAYLIST_COVER_URLS, getPlaylistCoverUrl } from '../data/musicContent'
 import type { Artist, Genre, Playlist, Track } from '../types'
 
 export function HomePage() {
+  const { isLoading: authLoading, token, user } = useAuth()
+
   const [genres, setGenres] = useState<Genre[]>([])
   const [artists, setArtists] = useState<Artist[]>([])
   const [playlists, setPlaylists] = useState<Playlist[]>([])
   const [tracks, setTracks] = useState<Track[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [hasProfile, setHasProfile] = useState(true)
+  const [profileChecking, setProfileChecking] = useState(true)
 
   useEffect(() => {
     let isMounted = true
@@ -49,6 +54,34 @@ export function HomePage() {
     }
   }, [])
 
+  useEffect(() => {
+    if (authLoading || !token) {
+      setProfileChecking(false)
+      if (!token) setHasProfile(false)
+      return
+    }
+
+    let isMounted = true
+
+    getProfile(token)
+      .then((res) => {
+        if (isMounted) {
+          const p = res.profile
+          setHasProfile(
+            p.favorite_genre_ids.length > 0 || p.favorite_artist_ids.length > 0 || p.starter_track_ids.length > 0,
+          )
+        }
+      })
+      .catch(() => {
+        if (isMounted) setHasProfile(false)
+      })
+      .finally(() => {
+        if (isMounted) setProfileChecking(false)
+      })
+
+    return () => { isMounted = false }
+  }, [authLoading, token])
+
   const personalTiles = useMemo(() => {
     return genres.slice(0, 6).map((genre, index) => ({
       title: genre.name,
@@ -82,6 +115,31 @@ export function HomePage() {
   )
 
   const moodPlaylists = useMemo(() => playlists.slice(0, 6), [playlists])
+
+  function renderOnboardingCTA() {
+    if (authLoading || profileChecking) return null
+
+    if (!user && !token) {
+      return (
+        <section className="feed-section onboarding-cta">
+          <p>Войди, чтобы настроить рекомендации под твой вкус.</p>
+          <a className="auth-link" href={ROUTES.login}>Войти</a>
+        </section>
+      )
+    }
+
+    if (token && !hasProfile) {
+      return (
+        <section className="feed-section onboarding-cta">
+          <h2>Настрой свои музыкальные предпочтения</h2>
+          <p>Выбери жанры, артистов и треки — мы подберём музыку специально для тебя.</p>
+          <a className="auth-submit" href={ROUTES.onboarding} style={{ display: 'inline-block', textDecoration: 'none' }}>Настроить рекомендации</a>
+        </section>
+      )
+    }
+
+    return null
+  }
 
   if (isLoading) {
     return (
@@ -118,6 +176,8 @@ export function HomePage() {
             <a href={ROUTES.playlists}>Плейлисты</a>
           </nav>
         </header>
+
+        {renderOnboardingCTA()}
 
         {error && (
           <section className="feed-section">

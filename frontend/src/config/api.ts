@@ -16,6 +16,8 @@ export const API_ENDPOINTS = {
   playlistById: (id: number | string) => `/api/v1/playlists/${id}`,
   genres: '/api/v1/genres',
   artists: '/api/v1/artists',
+  onboarding: '/api/v1/me/onboarding',
+  profile: '/api/v1/me/profile',
 } as const
 
 function normalizeBaseUrl(value: string): string {
