@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { ROUTES } from '../config/routes'
 import { MusicKeyLogo } from './MusicKeyLogo'
 
 type AuthShellProps = {
@@ -10,7 +11,7 @@ type AuthShellProps = {
 export function AuthShell({ title, subtitle, children }: AuthShellProps) {
   return (
     <main className="auth-shell">
-      <a className="auth-brand" href="/">
+      <a className="auth-brand" href={ROUTES.home}>
         <MusicKeyLogo className="auth-brand-mark" label="Home" />
         <span>Gudba Music</span>
       </a>

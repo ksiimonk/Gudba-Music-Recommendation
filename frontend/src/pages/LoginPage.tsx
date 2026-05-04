@@ -1,16 +1,23 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getApiErrorMessage, loginUser } from '../api'
+import { useAuth } from '../auth/AuthContext'
 import { AuthForm } from '../components/AuthForm'
 import { AuthShell } from '../components/AuthShell'
-
-const AUTH_TOKEN_STORAGE_KEY = 'music_recommender_token'
+import { ROUTES } from '../config/routes'
 
 export function LoginPage() {
+  const { isLoading, login, user } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      window.location.href = ROUTES.home
+    }
+  }, [isLoading, user])
 
   async function handleLogin() {
     setIsSubmitting(true)
@@ -19,9 +26,9 @@ export function LoginPage() {
 
     try {
       const response = await loginUser({ email, password })
-      localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, response.token)
-      setMessage('Вы вошли. Токен сессии сохранен в этом браузере.')
+      await login(response.token)
       setPassword('')
+      window.location.href = ROUTES.home
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, 'Не удалось войти.'))
     } finally {
@@ -38,7 +45,7 @@ export function LoginPage() {
         title="Вход"
         submitLabel="Войти"
         switchText="Еще нет аккаунта?"
-        switchHref="/register"
+        switchHref={ROUTES.register}
         switchLabel="Зарегистрироваться"
         passwordAutoComplete="current-password"
         email={email}

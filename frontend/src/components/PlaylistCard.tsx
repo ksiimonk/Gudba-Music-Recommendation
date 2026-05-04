@@ -1,3 +1,4 @@
+import { getPlaylistRoute } from '../config/routes'
 import type { Playlist } from '../types'
 
 type PlaylistCardProps = {
@@ -7,7 +8,7 @@ type PlaylistCardProps = {
 
 export function PlaylistCard({ playlist, coverUrl }: PlaylistCardProps) {
   return (
-    <a className="playlist-card" href={`/playlists/${playlist.id}`}>
+    <a className="playlist-card" href={getPlaylistRoute(playlist.id)}>
       <img src={coverUrl} alt="" />
       <div>
         <h3>{playlist.name}</h3>

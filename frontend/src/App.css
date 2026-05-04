@@ -50,6 +50,40 @@ button {
   font-weight: 900;
 }
 
+.mobile-user,
+.mobile-auth-actions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-user strong {
+  max-width: 136px;
+  overflow: hidden;
+  color: #fff;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-auth-actions a {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 10px;
+  color: #fff;
+  background: #181818;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.mobile-auth-actions a:last-child {
+  color: #07130d;
+  background: #1ed760;
+}
+
 .home-avatar {
   width: 42px;
   height: 42px;
@@ -132,6 +166,92 @@ button {
 .sidebar-library strong {
   font-size: 14px;
   line-height: 1.35;
+}
+
+.sidebar-auth {
+  display: grid;
+  gap: 12px;
+  margin-top: auto;
+  border-radius: 10px;
+  padding: 14px;
+  background: #121212;
+}
+
+.sidebar-auth > span {
+  color: #b3b3b3;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.auth-user {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-avatar {
+  width: 38px;
+  height: 38px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #07130d;
+  background: #1ed760;
+  font-weight: 900;
+}
+
+.auth-user strong,
+.auth-user small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-user strong {
+  color: #fff;
+  font-size: 14px;
+}
+
+.auth-user small {
+  color: #a7a7a7;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.auth-link,
+.logout-button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 14px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.auth-link {
+  color: #07130d;
+  background: #1ed760;
+}
+
+.auth-link.secondary {
+  color: #fff;
+  background: #242424;
+}
+
+.logout-button {
+  border: 0;
+  color: #fff;
+  background: #242424;
+}
+
+.logout-button:hover,
+.auth-link.secondary:hover {
+  background: #303030;
 }
 
 .bottom-navigation {

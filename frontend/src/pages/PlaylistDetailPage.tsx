@@ -2,14 +2,13 @@ import { useEffect, useState } from 'react'
 import { getApiErrorMessage, getPlaylistById } from '../api'
 import { AppShell } from '../components/AppShell'
 import { TrackRow } from '../components/TrackRow'
+import { ROUTES } from '../config/routes'
+import { FALLBACK_PLAYLIST_COVER_URL } from '../data/musicContent'
 import type { Playlist, Track } from '../types'
 
 type PlaylistDetailPageProps = {
   playlistId: number
 }
-
-const fallbackCover =
-  'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600'
 
 export function PlaylistDetailPage({ playlistId }: PlaylistDetailPageProps) {
   const isInvalidPlaylistId = !Number.isFinite(playlistId) || playlistId <= 0
@@ -68,7 +67,7 @@ export function PlaylistDetailPage({ playlistId }: PlaylistDetailPageProps) {
             <span>Плейлист</span>
             <h1>{playlist?.name ?? 'Детали плейлиста'}</h1>
           </div>
-          <a href="/playlists">Назад к плейлистам</a>
+          <a href={ROUTES.playlists}>Назад к плейлистам</a>
         </header>
 
         {isLoading && <p className="page-state">Загружаем плейлист...</p>}
@@ -95,7 +94,7 @@ export function PlaylistDetailPage({ playlistId }: PlaylistDetailPageProps) {
 
             <section className="track-actions-panel">
               <button type="button">▶ Воспроизвести</button>
-              <a href="/tracks">Открыть все треки</a>
+              <a href={ROUTES.tracks}>Открыть все треки</a>
             </section>
 
             <section className="playlist-tracks-section">
@@ -124,5 +123,5 @@ export function PlaylistDetailPage({ playlistId }: PlaylistDetailPageProps) {
 }
 
 function getPlaylistCover(tracks: Track[]) {
-  return tracks.find((track) => track.cover_url)?.cover_url ?? fallbackCover
+  return tracks.find((track) => track.cover_url)?.cover_url ?? FALLBACK_PLAYLIST_COVER_URL
 }

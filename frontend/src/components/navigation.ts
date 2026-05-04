@@ -1,3 +1,5 @@
+import { ROUTES } from '../config/routes'
+
 export type NavigationItem = {
   href: string
   label: string
@@ -6,25 +8,25 @@ export type NavigationItem = {
 
 export const navigationItems: NavigationItem[] = [
   {
-    href: '/',
+    href: ROUTES.home,
     label: 'Главная',
     icon: '⌂',
   },
   {
-    href: '/tracks',
+    href: ROUTES.tracks,
     label: 'Треки',
     icon: '♪',
   },
   {
-    href: '/playlists',
+    href: ROUTES.playlists,
     label: 'Плейлисты',
     icon: '▣',
   },
 ]
 
 export function isNavigationItemActive(pathname: string, href: string) {
-  if (href === '/') {
-    return pathname === '/'
+  if (href === ROUTES.home) {
+    return pathname === ROUTES.home
   }
 
   return pathname === href || pathname.startsWith(`${href}/`)

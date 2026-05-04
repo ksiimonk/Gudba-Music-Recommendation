@@ -1,8 +1,6 @@
-const DEFAULT_API_BASE_URL = 'http://127.0.0.1:8080'
+import { API_BASE_URL } from '../config/api'
 
-export const API_BASE_URL = normalizeBaseUrl(
-  import.meta.env.VITE_API_BASE_URL ?? DEFAULT_API_BASE_URL,
-)
+export { API_BASE_URL }
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
@@ -77,10 +75,6 @@ function buildUrl(path: string): string {
   }
 
   return `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`
-}
-
-function normalizeBaseUrl(value: string): string {
-  return value.replace(/\/+$/, '')
 }
 
 export const apiClient = {

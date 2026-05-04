@@ -1,3 +1,5 @@
+import { getTrackRoute } from '../config/routes'
+import { FALLBACK_TRACK_COVER_URL } from '../data/musicContent'
 import type { Track } from '../types'
 
 type TrackRowProps = {
@@ -5,19 +7,16 @@ type TrackRowProps = {
   index?: number
 }
 
-const fallbackCoverUrl =
-  'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300'
-
 export function TrackRow({ track, index }: TrackRowProps) {
   const genres = track.genres.map((genre) => genre.name).join(', ')
 
   return (
     <a
       className={`track-row ${index !== undefined ? 'track-row-numbered' : ''}`}
-      href={`/tracks/${track.id}`}
+      href={getTrackRoute(track.id)}
     >
       {index !== undefined && <span className="track-index">{index}</span>}
-      <img src={track.cover_url || fallbackCoverUrl} alt="" />
+      <img src={track.cover_url || FALLBACK_TRACK_COVER_URL} alt="" />
       <div className="track-row-copy">
         <strong>{track.title}</strong>
         <span>{track.artist.name}</span>

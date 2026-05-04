@@ -1,14 +1,23 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getApiErrorMessage, registerUser } from '../api'
+import { useAuth } from '../auth/AuthContext'
 import { AuthForm } from '../components/AuthForm'
 import { AuthShell } from '../components/AuthShell'
+import { ROUTES } from '../config/routes'
 
 export function RegisterPage() {
+  const { isLoading, user } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      window.location.href = ROUTES.home
+    }
+  }, [isLoading, user])
 
   async function handleRegister() {
     setIsSubmitting(true)
@@ -17,7 +26,9 @@ export function RegisterPage() {
 
     try {
       const response = await registerUser({ email, password })
-      setMessage(`${response.user.email} зарегистрирован. Теперь можно войти.`)
+      setMessage(
+        `${response.user.email} зарегистрирован. Теперь можно войти.`,
+      )
       setPassword('')
     } catch (requestError) {
       setError(
@@ -37,7 +48,7 @@ export function RegisterPage() {
         title="Регистрация"
         submitLabel="Зарегистрироваться"
         switchText="Уже есть аккаунт?"
-        switchHref="/login"
+        switchHref={ROUTES.login}
         switchLabel="Войти"
         passwordAutoComplete="new-password"
         email={email}

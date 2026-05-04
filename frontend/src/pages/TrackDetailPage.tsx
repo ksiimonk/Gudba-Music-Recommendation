@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getApiErrorMessage, getTrackById } from '../api'
 import { AppShell } from '../components/AppShell'
 import { formatDuration } from '../components/TrackRow'
+import { ROUTES } from '../config/routes'
 import type { Track } from '../types'
 
 type TrackDetailPageProps = {
@@ -61,7 +62,7 @@ export function TrackDetailPage({ trackId }: TrackDetailPageProps) {
             <span>Трек</span>
             <h1>{track?.title ?? 'Детали трека'}</h1>
           </div>
-          <a href="/tracks">Назад к трекам</a>
+          <a href={ROUTES.tracks}>Назад к трекам</a>
         </header>
 
         {isLoading && <p className="page-state">Загружаем трек...</p>}

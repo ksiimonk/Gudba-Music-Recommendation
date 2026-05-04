@@ -14,12 +14,12 @@ const (
 	apiPrefix   = "/api/v1"
 	authPrefix  = "/auth"
 
-	registerRoute       = "/register"
-	loginRoute          = "/login"
-	meRoute             = "/me"
-	tracksRoute         = "/tracks"
-	trackDetailRoute    = "/tracks/:id"
-	playlistsRoute      = "/playlists"
+	registerRoute     = "/register"
+	loginRoute        = "/login"
+	meRoute           = "/me"
+	tracksRoute       = "/tracks"
+	trackDetailRoute  = "/tracks/:id"
+	playlistsRoute    = "/playlists"
 	playlistDetailRoute = "/playlists/:id"
 
 	corsAllowHeaders = "Authorization, Content-Type"

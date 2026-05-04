@@ -2,16 +2,9 @@ import { useEffect, useState } from 'react'
 import { getApiErrorMessage, listPlaylists } from '../api'
 import { AppShell } from '../components/AppShell'
 import { PlaylistCard } from '../components/PlaylistCard'
+import { ROUTES } from '../config/routes'
+import { getPlaylistCoverUrl } from '../data/musicContent'
 import type { Playlist } from '../types'
-
-const playlistCovers = [
-  'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500',
-  'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500',
-  'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500',
-  'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=500',
-  'https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?w=500',
-  'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=500',
-]
 
 export function PlaylistListPage() {
   const [playlists, setPlaylists] = useState<Playlist[]>([])
@@ -57,7 +50,7 @@ export function PlaylistListPage() {
             <span>Медиатека</span>
             <h1>Плейлисты</h1>
           </div>
-          <a href="/tracks">Все треки</a>
+          <a href={ROUTES.tracks}>Все треки</a>
         </header>
 
         <section className="playlist-library-hero">
@@ -82,7 +75,7 @@ export function PlaylistListPage() {
             <div className="playlist-grid">
               {playlists.map((playlist, index) => (
                 <PlaylistCard
-                  coverUrl={playlistCovers[index % playlistCovers.length]}
+                  coverUrl={getPlaylistCoverUrl(index)}
                   playlist={playlist}
                   key={playlist.id}
                 />

@@ -1,16 +1,15 @@
+import { DEFAULT_MINI_PLAYER } from '../data/musicContent'
+
 type MiniPlayerProps = {
   title?: string
   artist?: string
   coverUrl?: string
 }
 
-const defaultCoverUrl =
-  'https://images.unsplash.com/photo-1442975631134-6137411e9d4e?w=200'
-
 export function MiniPlayer({
-  title = 'Night Drive',
-  artist = 'Ideal',
-  coverUrl = defaultCoverUrl,
+  title = DEFAULT_MINI_PLAYER.title,
+  artist = DEFAULT_MINI_PLAYER.artist,
+  coverUrl = DEFAULT_MINI_PLAYER.coverUrl,
 }: MiniPlayerProps) {
   return (
     <section className="mini-player" aria-label="Сейчас играет">
