@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getApiErrorMessage, getPlaylistById } from '../api'
+import { AppShell } from '../components/AppShell'
+import { TrackRow } from '../components/TrackRow'
 import type { Playlist, Track } from '../types'
 
 type PlaylistDetailPageProps = {
@@ -59,90 +61,68 @@ export function PlaylistDetailPage({ playlistId }: PlaylistDetailPageProps) {
   const coverUrl = getPlaylistCover(tracks)
 
   return (
-    <main className="playlist-detail-page">
-      <header className="tracks-header">
-        <a
-          className="back-link"
-          href="/playlists"
-          aria-label="Назад к плейлистам"
-        >
-          ←
-        </a>
-        <div>
-          <span>Плейлист</span>
-          <h1>{playlist?.name ?? 'Детали плейлиста'}</h1>
-        </div>
-      </header>
+    <AppShell>
+      <div className="playlist-detail-page">
+        <header className="page-header">
+          <div>
+            <span>Плейлист</span>
+            <h1>{playlist?.name ?? 'Детали плейлиста'}</h1>
+          </div>
+          <a href="/playlists">Назад к плейлистам</a>
+        </header>
 
-      {isLoading && <p className="page-state">Загружаем плейлист...</p>}
-      {visibleError && (
-        <p className="page-state page-state-error">{visibleError}</p>
-      )}
+        {isLoading && <p className="page-state">Загружаем плейлист...</p>}
+        {visibleError && (
+          <p className="page-state page-state-error">{visibleError}</p>
+        )}
 
-      {playlist && !visibleError && (
-        <>
-          <section className="playlist-detail-hero">
-            <div className="playlist-cover-stack">
-              <img src={coverUrl} alt="" />
-            </div>
-            <div>
-              <span>Публичная подборка</span>
-              <h2>{playlist.name}</h2>
-              <p>{playlist.description ?? 'Собрано для музыкального настроения.'}</p>
-              <strong>{tracks.length} треков</strong>
-            </div>
-          </section>
-
-          <section className="track-actions-panel">
-            <button type="button">▶ Воспроизвести</button>
-            <a href="/tracks">Открыть все треки</a>
-          </section>
-
-          <section className="playlist-tracks-section">
-            <div className="section-heading">
-              <h2>Треки в плейлисте</h2>
-              <span>{tracks.length > 0 ? `${tracks.length} треков` : ''}</span>
-            </div>
-
-            {tracks.length === 0 ? (
-              <p className="page-state">В этом плейлисте пока нет треков.</p>
-            ) : (
-              <div className="track-list">
-                {tracks.map((track, index) => (
-                  <PlaylistTrackRow index={index + 1} track={track} key={track.id} />
-                ))}
+        {playlist && !visibleError && (
+          <>
+            <section className="playlist-detail-hero">
+              <div className="playlist-cover-stack">
+                <img src={coverUrl} alt="" />
               </div>
-            )}
-          </section>
-        </>
-      )}
-    </main>
-  )
-}
+              <div>
+                <span>Публичная подборка</span>
+                <h2>{playlist.name}</h2>
+                <p>
+                  {playlist.description ??
+                    'Собрано для музыкального настроения.'}
+                </p>
+                <strong>{tracks.length} треков</strong>
+              </div>
+            </section>
 
-function PlaylistTrackRow({ index, track }: { index: number; track: Track }) {
-  return (
-    <a className="track-row playlist-track-row" href={`/tracks/${track.id}`}>
-      <span className="track-index">{index}</span>
-      <img src={track.cover_url} alt="" />
-      <div>
-        <strong>{track.title}</strong>
-        <span>{track.artist.name}</span>
-        <small>{track.genres.map((genre) => genre.name).join(', ')}</small>
+            <section className="track-actions-panel">
+              <button type="button">▶ Воспроизвести</button>
+              <a href="/tracks">Открыть все треки</a>
+            </section>
+
+            <section className="playlist-tracks-section">
+              <div className="section-heading">
+                <h2>Треки в плейлисте</h2>
+                <span>{tracks.length > 0 ? `${tracks.length} треков` : ''}</span>
+              </div>
+
+              {tracks.length === 0 ? (
+                <p className="page-state">
+                  В этом плейлисте пока нет треков.
+                </p>
+              ) : (
+                <div className="track-list">
+                  {tracks.map((track, index) => (
+                    <TrackRow track={track} index={index + 1} key={track.id} />
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </div>
-      <time>{formatDuration(track.duration_ms)}</time>
-    </a>
+    </AppShell>
   )
 }
 
 function getPlaylistCover(tracks: Track[]) {
   return tracks.find((track) => track.cover_url)?.cover_url ?? fallbackCover
-}
-
-function formatDuration(durationMs: number) {
-  const totalSeconds = Math.round(durationMs / 1000)
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = totalSeconds % 60
-
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`
 }

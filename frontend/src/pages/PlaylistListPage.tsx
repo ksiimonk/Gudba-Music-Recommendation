@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getApiErrorMessage, listPlaylists } from '../api'
+import { AppShell } from '../components/AppShell'
+import { PlaylistCard } from '../components/PlaylistCard'
 import type { Playlist } from '../types'
 
 const playlistCovers = [
@@ -48,81 +50,47 @@ export function PlaylistListPage() {
   }, [])
 
   return (
-    <main className="playlists-page">
-      <header className="tracks-header">
-        <a className="back-link" href="/" aria-label="На главную">
-          ←
-        </a>
-        <div>
-          <span>Медиатека</span>
-          <h1>Плейлисты</h1>
-        </div>
-      </header>
-
-      <section className="playlist-library-hero">
-        <div>
-          <span>Подборки по жанрам, настроению и артистам</span>
-          <h2>Выбирай плейлист и запускай поток треков.</h2>
-        </div>
-      </section>
-
-      <section className="track-list-section">
-        <div className="section-heading">
-          <h2>Все плейлисты</h2>
-          <span>
-            {playlists.length > 0 ? `${playlists.length} подборок` : ''}
-          </span>
-        </div>
-
-        {isLoading && <p className="page-state">Загружаем плейлисты...</p>}
-        {error && <p className="page-state page-state-error">{error}</p>}
-
-        {!isLoading && !error && (
-          <div className="playlist-grid">
-            {playlists.map((playlist, index) => (
-              <PlaylistCard
-                coverUrl={playlistCovers[index % playlistCovers.length]}
-                playlist={playlist}
-                key={playlist.id}
-              />
-            ))}
+    <AppShell>
+      <div className="playlists-page">
+        <header className="page-header">
+          <div>
+            <span>Медиатека</span>
+            <h1>Плейлисты</h1>
           </div>
-        )}
-      </section>
+          <a href="/tracks">Все треки</a>
+        </header>
 
-      <nav className="bottom-nav" aria-label="Основная навигация">
-        <a href="/">
-          <span>⌂</span>
-          Главная
-        </a>
-        <a href="/tracks">
-          <span>⌕</span>
-          Поиск
-        </a>
-        <a className="active" href="/playlists">
-          <span>▥</span>
-          Моя медиатека
-        </a>
-      </nav>
-    </main>
-  )
-}
+        <section className="playlist-library-hero">
+          <div>
+            <span>Подборки по жанрам, настроению и артистам</span>
+            <h2>Выбирай плейлист и запускай поток треков.</h2>
+          </div>
+        </section>
 
-function PlaylistCard({
-  playlist,
-  coverUrl,
-}: {
-  playlist: Playlist
-  coverUrl: string
-}) {
-  return (
-    <a className="playlist-card" href={`/playlists/${playlist.id}`}>
-      <img src={coverUrl} alt="" />
-      <div>
-        <h3>{playlist.name}</h3>
-        <p>{playlist.description ?? 'Персональная подборка'}</p>
-        <span>{playlist.track_count} треков</span>
+        <section className="track-list-section">
+          <div className="section-heading">
+            <h2>Все плейлисты</h2>
+            <span>
+              {playlists.length > 0 ? `${playlists.length} подборок` : ''}
+            </span>
+          </div>
+
+          {isLoading && <p className="page-state">Загружаем плейлисты...</p>}
+          {error && <p className="page-state page-state-error">{error}</p>}
+
+          {!isLoading && !error && (
+            <div className="playlist-grid">
+              {playlists.map((playlist, index) => (
+                <PlaylistCard
+                  coverUrl={playlistCovers[index % playlistCovers.length]}
+                  playlist={playlist}
+                  key={playlist.id}
+                />
+              ))}
+            </div>
+          )}
+        </section>
       </div>
-    </a>
+    </AppShell>
   )
 }

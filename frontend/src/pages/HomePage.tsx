@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
-import { listPlaylists } from '../api'
-import type { Playlist } from '../types'
+import { listPlaylists, listTracks } from '../api'
+import { AppShell } from '../components/AppShell'
+import { CoverTile } from '../components/CoverTile'
+import { PlaylistCard } from '../components/PlaylistCard'
+import { TrackRow } from '../components/TrackRow'
+import type { Playlist, Track } from '../types'
 
-type CoverCard = {
+type FeedTile = {
   title: string
   subtitle: string
   coverUrl: string
+  href: string
 }
 
 const coverUrls = [
@@ -18,85 +22,78 @@ const coverUrls = [
   'https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?w=500',
 ]
 
-const fallbackPlaylists: CoverCard[] = [
+const fallbackPersonalTiles: FeedTile[] = [
   {
     title: 'Lo-Fi вечер',
     subtitle: 'Подборка по жанру',
     coverUrl: coverUrls[0],
+    href: '/playlists',
   },
   {
     title: 'Электронная концентрация',
     subtitle: 'Для глубокой работы',
     coverUrl: coverUrls[2],
+    href: '/playlists',
   },
   {
     title: 'Инди после полуночи',
     subtitle: 'Гитары и мягкий шум',
     coverUrl: coverUrls[5],
+    href: '/playlists',
   },
   {
     title: 'Jazz Hop для прогулки',
     subtitle: 'Ритм без спешки',
     coverUrl: coverUrls[1],
+    href: '/playlists',
   },
 ]
 
-const recentItems: CoverCard[] = [
+const fallbackQuickAccess: FeedTile[] = [
   {
     title: 'Любимые треки',
-    subtitle: 'Последнее прослушивание',
+    subtitle: 'Недавно слушал',
     coverUrl: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=300',
+    href: '/tracks',
   },
   {
     title: 'На подумать',
-    subtitle: 'Недавно слушал',
+    subtitle: 'Продолжить',
     coverUrl: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=300',
+    href: '/playlists',
   },
   {
     title: 'Ночной фокус',
-    subtitle: 'Продолжить',
+    subtitle: 'Собрано для вечера',
     coverUrl: 'https://images.unsplash.com/photo-1504898770365-14faca6a7320?w=300',
-  },
-]
-
-const recommendedAlbums: CoverCard[] = [
-  {
-    title: 'Golden Thread',
-    subtitle: 'Новый альбом исполнителя',
-    coverUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500',
+    href: '/playlists',
   },
   {
     title: 'Pulse Nova',
-    subtitle: 'Синтвейв и глубокий бас',
-    coverUrl: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=500',
-  },
-  {
-    title: 'Blue Note Trio',
-    subtitle: 'Современный джаз',
-    coverUrl: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=500',
-  },
-  {
-    title: 'Soft Glow',
-    subtitle: 'Инди-поп релиз',
-    coverUrl: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=500',
+    subtitle: 'Новый альбом',
+    coverUrl: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=300',
+    href: '/tracks',
   },
 ]
 
 export function HomePage() {
   const [playlists, setPlaylists] = useState<Playlist[]>([])
+  const [tracks, setTracks] = useState<Track[]>([])
 
   useEffect(() => {
     let isMounted = true
 
-    listPlaylists()
-      .then((response) => {
+    Promise.all([listPlaylists(), listTracks()])
+      .then(([playlistResponse, trackResponse]) => {
         if (isMounted) {
-          setPlaylists(response.playlists)
+          setPlaylists(playlistResponse.playlists)
+          setTracks(trackResponse.tracks)
         }
       })
       .catch(() => {
         if (isMounted) {
           setPlaylists([])
+          setTracks([])
         }
       })
 
@@ -105,131 +102,143 @@ export function HomePage() {
     }
   }, [])
 
-  const personalPlaylists = useMemo(() => {
+  const personalTiles = useMemo(() => {
     if (playlists.length === 0) {
-      return fallbackPlaylists
+      return fallbackPersonalTiles
     }
 
     return playlists.slice(0, 6).map((playlist, index) => ({
       title: playlist.name,
       subtitle: playlist.description ?? `${playlist.track_count} треков`,
-      coverUrl: coverUrls[index % coverUrls.length],
+      coverUrl: getPlaylistCover(index),
+      href: `/playlists/${playlist.id}`,
     }))
   }, [playlists])
 
-  const recentPlaylists = useMemo(
-    () => [...personalPlaylists.slice(0, 5), ...recentItems].slice(0, 8),
-    [personalPlaylists],
-  )
+  const quickAccess = useMemo(() => {
+    const playlistItems = playlists.slice(0, 4).map((playlist, index) => ({
+      title: playlist.name,
+      subtitle: 'Плейлист',
+      coverUrl: getPlaylistCover(index),
+      href: `/playlists/${playlist.id}`,
+    }))
+
+    const trackItems = tracks.slice(0, 4).map((track) => ({
+      title: track.title,
+      subtitle: track.artist.name,
+      coverUrl: track.cover_url || coverUrls[0],
+      href: `/tracks/${track.id}`,
+    }))
+
+    const items = [...playlistItems, ...trackItems].slice(0, 8)
+
+    return items.length > 0 ? items : fallbackQuickAccess
+  }, [playlists, tracks])
+
+  const popularTracks = useMemo(() => tracks.slice(0, 5), [tracks])
+  const moodPlaylists = useMemo(() => playlists.slice(0, 6), [playlists])
 
   return (
-    <main className="home-page">
-      <header className="home-topbar">
-        <a className="home-avatar" href="/login" aria-label="Профиль">
-          S
-        </a>
-        <nav className="home-filters" aria-label="Фильтры главной">
-          <a className="active" href="/">
-            Все
-          </a>
-          <a href="/tracks">Музыка</a>
-          <a href="/playlists">Плейлисты</a>
-        </nav>
-      </header>
-
-      <section className="quick-grid" aria-label="Недавно прослушанные">
-        {recentPlaylists.map((item) => (
-          <a className="quick-card" href="/playlists" key={item.title}>
-            <img src={item.coverUrl} alt="" />
-            <span>{item.title}</span>
-          </a>
-        ))}
-      </section>
-
-      <section className="featured-release">
-        <div className="artist-intro">
-          <img src={recommendedAlbums[0].coverUrl} alt="" />
+    <AppShell>
+      <div className="home-page">
+        <header className="feed-header">
           <div>
-            <span>Новый релиз исполнителя</span>
-            <h1>{recommendedAlbums[0].title}</h1>
+            <span>Сегодня в Gudba</span>
+            <h1>Музыка под твой день</h1>
           </div>
-        </div>
+          <nav className="home-filters" aria-label="Фильтры главной">
+            <a className="active" href="/">
+              Все
+            </a>
+            <a href="/tracks">Треки</a>
+            <a href="/playlists">Плейлисты</a>
+          </nav>
+        </header>
 
-        <article className="release-card">
-          <img src="https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=500" alt="" />
-          <div>
-            <span>Альбом</span>
-            <h2>Midnight Signals</h2>
-            <p>Golden Thread, Soft Glow, Pulse Nova</p>
+        <section className="feed-section" aria-labelledby="quick-access-title">
+          <div className="section-heading">
+            <h2 id="quick-access-title">Быстрый доступ</h2>
           </div>
-          <button type="button" aria-label="Воспроизвести Midnight Signals">
-            ▶
-          </button>
-        </article>
-      </section>
+          <div className="quick-grid">
+            {quickAccess.map((item) => (
+              <a className="quick-card" href={item.href} key={`${item.href}-${item.title}`}>
+                <img src={item.coverUrl} alt="" />
+                <span>{item.title}</span>
+              </a>
+            ))}
+          </div>
+        </section>
 
-      <HomeSection title="Только для тебя">
-        {personalPlaylists.map((playlist) => (
-          <CoverTile item={playlist} key={playlist.title} />
-        ))}
-      </HomeSection>
+        <section className="feed-section" aria-labelledby="personal-title">
+          <div className="section-heading">
+            <h2 id="personal-title">Только для тебя</h2>
+            <a href="/playlists">Открыть все</a>
+          </div>
+          <div className="card-row">
+            {personalTiles.map((item) => (
+              <CoverTile
+                title={item.title}
+                subtitle={item.subtitle}
+                coverUrl={item.coverUrl}
+                href={item.href}
+                key={`${item.href}-${item.title}`}
+              />
+            ))}
+          </div>
+        </section>
 
-      <HomeSection title="Альбомы рекомендованных исполнителей">
-        {recommendedAlbums.map((album) => (
-          <CoverTile item={album} key={album.title} />
-        ))}
-      </HomeSection>
+        <section className="feed-section feed-tracks" aria-labelledby="popular-tracks-title">
+          <div className="section-heading">
+            <h2 id="popular-tracks-title">Популярные треки</h2>
+            <a href="/tracks">Все треки</a>
+          </div>
 
-      <div className="mini-player" aria-label="Сейчас играет">
-        <img src="https://images.unsplash.com/photo-1442975631134-6137411e9d4e?w=200" alt="" />
-        <div>
-          <strong>Night Drive</strong>
-          <span>Ideal</span>
-        </div>
-        <button type="button" aria-label="Пауза">
-          ❚❚
-        </button>
+          {popularTracks.length === 0 ? (
+            <p className="page-state">Треки появятся после запуска backend.</p>
+          ) : (
+            <div className="track-list">
+              {popularTracks.map((track, index) => (
+                <TrackRow track={track} index={index + 1} key={track.id} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="feed-section" aria-labelledby="mood-playlists-title">
+          <div className="section-heading">
+            <h2 id="mood-playlists-title">Плейлисты для настроения</h2>
+            <a href="/playlists">Медиатека</a>
+          </div>
+
+          {moodPlaylists.length === 0 ? (
+            <div className="card-row">
+              {fallbackPersonalTiles.map((item) => (
+                <CoverTile
+                  title={item.title}
+                  subtitle={item.subtitle}
+                  coverUrl={item.coverUrl}
+                  href={item.href}
+                  key={item.title}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="playlist-grid">
+              {moodPlaylists.map((playlist, index) => (
+                <PlaylistCard
+                  playlist={playlist}
+                  coverUrl={getPlaylistCover(index)}
+                  key={playlist.id}
+                />
+              ))}
+            </div>
+          )}
+        </section>
       </div>
-
-      <nav className="bottom-nav" aria-label="Основная навигация">
-        <a className="active" href="/">
-          <span>⌂</span>
-          Главная
-        </a>
-        <a href="/tracks">
-          <span>⌕</span>
-          Поиск
-        </a>
-        <a href="/playlists">
-          <span>▥</span>
-          Моя медиатека
-        </a>
-      </nav>
-    </main>
+    </AppShell>
   )
 }
 
-function HomeSection({
-  title,
-  children,
-}: {
-  title: string
-  children: ReactNode
-}) {
-  return (
-    <section className="home-section">
-      <h2>{title}</h2>
-      <div className="card-row">{children}</div>
-    </section>
-  )
-}
-
-function CoverTile({ item }: { item: CoverCard }) {
-  return (
-    <article className="cover-tile">
-      <img src={item.coverUrl} alt="" />
-      <h3>{item.title}</h3>
-      <p>{item.subtitle}</p>
-    </article>
-  )
+function getPlaylistCover(index: number) {
+  return coverUrls[index % coverUrls.length]
 }
