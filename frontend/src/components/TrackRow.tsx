@@ -1,5 +1,6 @@
 import { getTrackRoute } from '../config/routes'
 import { FALLBACK_TRACK_COVER_URL } from '../data/musicContent'
+import { usePlayer } from '../context/PlayerContext'
 import type { Track } from '../types'
 
 type TrackRowProps = {
@@ -9,13 +10,30 @@ type TrackRowProps = {
 
 export function TrackRow({ track, index }: TrackRowProps) {
   const genres = track.genres.map((genre) => genre.name).join(', ')
+  const { playTrack } = usePlayer()
+
+  function handlePlay(event: React.MouseEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+    playTrack(track)
+  }
+
+  function handleNavigate() {
+    window.location.href = getTrackRoute(track.id)
+  }
 
   return (
-    <a
+    <div
       className={`track-row ${index !== undefined ? 'track-row-numbered' : ''}`}
-      href={getTrackRoute(track.id)}
+      onClick={handleNavigate}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') handleNavigate() }}
     >
       {index !== undefined && <span className="track-index">{index}</span>}
+      <button className="track-play-button" type="button" aria-label={`Слушать ${track.title}`} onClick={handlePlay}>
+        ▶
+      </button>
       <img src={track.cover_url || FALLBACK_TRACK_COVER_URL} alt="" />
       <div className="track-row-copy">
         <strong>{track.title}</strong>
@@ -23,7 +41,7 @@ export function TrackRow({ track, index }: TrackRowProps) {
         {genres && <small>{genres}</small>}
       </div>
       <time>{formatDuration(track.duration_ms)}</time>
-    </a>
+    </div>
   )
 }
 

@@ -21,6 +21,8 @@ const (
 	trackDetailRoute    = "/tracks/:id"
 	playlistsRoute      = "/playlists"
 	playlistDetailRoute = "/playlists/:id"
+	genresRoute         = "/genres"
+	artistsRoute        = "/artists"
 
 	corsAllowHeaders = "Authorization, Content-Type"
 	corsAllowMethods = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
@@ -61,6 +63,8 @@ func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHa
 
 		var trackHandler *TrackHandler
 		var playlistHandler *PlaylistHandler
+		var genreHandler *GenreHandler
+		var artistHandler *ArtistHandler
 
 		for _, handler := range routeHandlers {
 			switch typedHandler := handler.(type) {
@@ -68,6 +72,10 @@ func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHa
 				trackHandler = typedHandler
 			case *PlaylistHandler:
 				playlistHandler = typedHandler
+			case *GenreHandler:
+				genreHandler = typedHandler
+			case *ArtistHandler:
+				artistHandler = typedHandler
 			}
 		}
 
@@ -79,6 +87,14 @@ func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHa
 		if playlistHandler != nil {
 			api.GET(playlistsRoute, playlistHandler.ListPlaylists)
 			api.GET(playlistDetailRoute, playlistHandler.GetPlaylist)
+		}
+
+		if genreHandler != nil {
+			api.GET(genresRoute, genreHandler.ListGenres)
+		}
+
+		if artistHandler != nil {
+			api.GET(artistsRoute, artistHandler.ListArtists)
 		}
 	}
 

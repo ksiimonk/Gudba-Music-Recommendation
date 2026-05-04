@@ -21,6 +21,12 @@ export class ApiError extends Error {
   }
 }
 
+let onUnauthorized: (() => void) | null = null
+
+export function setOnUnauthorized(callback: (() => void) | null) {
+  onUnauthorized = callback
+}
+
 async function request<T>(
   method: HttpMethod,
   path: string,
@@ -45,6 +51,10 @@ async function request<T>(
     headers: requestHeaders,
     body: requestBody,
   })
+
+  if (response.status === 401 && onUnauthorized) {
+    onUnauthorized()
+  }
 
   const data = await readResponseBody(response)
 

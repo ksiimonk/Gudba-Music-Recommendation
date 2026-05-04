@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { getApiErrorMessage, registerUser } from '../api'
+import { getApiErrorMessage, loginUser, registerUser } from '../api'
 import { useAuth } from '../auth/AuthContext'
 import { AuthForm } from '../components/AuthForm'
 import { AuthShell } from '../components/AuthShell'
 import { ROUTES } from '../config/routes'
 
 export function RegisterPage() {
-  const { isLoading, user } = useAuth()
+  const { isLoading, login, user } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -25,11 +25,11 @@ export function RegisterPage() {
     setError('')
 
     try {
-      const response = await registerUser({ email, password })
-      setMessage(
-        `${response.user.email} зарегистрирован. Теперь можно войти.`,
-      )
+      await registerUser({ email, password })
+      const loginResponse = await loginUser({ email, password })
+      await login(loginResponse.token)
       setPassword('')
+      window.location.href = ROUTES.home
     } catch (requestError) {
       setError(
         getApiErrorMessage(requestError, 'Не удалось создать аккаунт.'),

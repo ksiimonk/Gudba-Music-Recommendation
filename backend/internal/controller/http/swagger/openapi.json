@@ -18,6 +18,10 @@
     {
       "name": "auth",
       "description": "Authentication endpoints"
+    },
+    {
+      "name": "catalog",
+      "description": "Music catalog endpoints"
     }
   ],
   "paths": {
@@ -215,6 +219,46 @@
           }
         }
       }
+    },
+    "/api/v1/genres": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "List all genres",
+        "responses": {
+          "200": {
+            "description": "List of genres",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenreListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/artists": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "List all artists",
+        "responses": {
+          "200": {
+            "description": "List of artists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -316,6 +360,73 @@
         "properties": {
           "user": {
             "$ref": "#/components/schemas/User"
+          }
+        }
+      },
+      "Genre": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Artist": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "spotify_url": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "GenreListResponse": {
+        "type": "object",
+        "properties": {
+          "genres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Genre"
+            }
+          }
+        }
+      },
+      "ArtistListResponse": {
+        "type": "object",
+        "properties": {
+          "artists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Artist"
+            }
           }
         }
       }

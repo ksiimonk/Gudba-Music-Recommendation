@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { getCurrentUser } from '../api'
+import { setOnUnauthorized } from '../api/client'
 import type { User } from '../types'
 import { clearToken, getCurrentToken, saveToken } from './tokenStorage'
 
@@ -41,6 +42,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => {
         setIsLoading(false)
       })
+  }, [])
+
+  useEffect(() => {
+    setOnUnauthorized(() => {
+      clearToken()
+      setToken(null)
+      setUser(null)
+    })
+
+    return () => {
+      setOnUnauthorized(null)
+    }
   }, [])
 
   async function login(nextToken: string) {

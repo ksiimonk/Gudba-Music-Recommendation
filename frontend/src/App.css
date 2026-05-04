@@ -592,11 +592,11 @@ button {
   border-radius: 8px;
   padding: 7px 10px 7px 7px;
   color: #f5f5f5;
-  text-decoration: none;
+  cursor: pointer;
 }
 
 .track-row-numbered {
-  grid-template-columns: 28px 56px minmax(0, 1fr) auto;
+  grid-template-columns: 28px 40px 56px minmax(0, 1fr) auto;
 }
 
 .track-row:hover {
@@ -607,6 +607,25 @@ button {
   color: #9a9a9a;
   font-weight: 900;
   text-align: center;
+}
+
+.track-play-button {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #1db954;
+  color: #000;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.track-row:hover .track-play-button {
+  display: flex;
 }
 
 .track-row img {
@@ -1082,7 +1101,7 @@ button {
   }
 
   .track-row-numbered {
-    grid-template-columns: 24px 52px minmax(0, 1fr) auto;
+    grid-template-columns: 24px 36px 52px minmax(0, 1fr) auto;
   }
 
   .track-row img {

@@ -1,25 +1,23 @@
-import { DEFAULT_MINI_PLAYER } from '../data/musicContent'
+import { usePlayer } from '../context/PlayerContext'
 
-type MiniPlayerProps = {
-  title?: string
-  artist?: string
-  coverUrl?: string
-}
+export function MiniPlayer() {
+  const { currentTrack, isPlaying, pauseTrack } = usePlayer()
 
-export function MiniPlayer({
-  title = DEFAULT_MINI_PLAYER.title,
-  artist = DEFAULT_MINI_PLAYER.artist,
-  coverUrl = DEFAULT_MINI_PLAYER.coverUrl,
-}: MiniPlayerProps) {
+  if (!currentTrack) {
+    return null
+  }
+
+  const coverUrl = currentTrack.cover_url || 'https://images.unsplash.com/photo-1442975631134-6137411e9d4e?w=200'
+
   return (
     <section className="mini-player" aria-label="Сейчас играет">
       <img src={coverUrl} alt="" />
       <div className="mini-player-copy">
-        <strong>{title}</strong>
-        <span>{artist}</span>
+        <strong>{currentTrack.title}</strong>
+        <span>{currentTrack.artist.name}</span>
       </div>
-      <button type="button" aria-label="Пауза">
-        Ⅱ
+      <button type="button" aria-label={isPlaying ? 'Пауза' : 'Плей'} onClick={pauseTrack}>
+        {isPlaying ? 'Ⅱ' : '▶'}
       </button>
     </section>
   )

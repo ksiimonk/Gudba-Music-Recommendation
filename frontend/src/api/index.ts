@@ -1,5 +1,7 @@
 export { getCurrentUser, loginUser, registerUser } from './auth'
-export { API_BASE_URL, ApiError, apiClient, apiGet } from './client'
+export { API_BASE_URL, ApiError, apiClient, apiGet, setOnUnauthorized } from './client'
 export { getApiErrorMessage } from './errors'
 export { getPlaylistById, listPlaylists } from './playlists'
 export { getTrackById, listTracks } from './tracks'
+export { listGenres } from './genres'
+export { listArtists } from './artists'
