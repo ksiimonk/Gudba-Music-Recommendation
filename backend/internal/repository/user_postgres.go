@@ -55,6 +55,19 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *entity.User) erro
 	return nil
 }
 
+func (r *UserRepository) DeleteUser(ctx context.Context, id int64) error {
+	if r == nil || r.db == nil {
+		return errors.New("user repository database is nil")
+	}
+
+	_, err := r.db.ExecContext(ctx, `DELETE FROM users WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("delete user: %w", err)
+	}
+
+	return nil
+}
+
 func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	if r == nil || r.db == nil {
 		return nil, errors.New("user repository database is nil")

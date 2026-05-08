@@ -23,9 +23,21 @@ func Run(cfg *config.Config) error {
 	userRepository := repository.NewUserRepository(db)
 	trackRepository := repository.NewTrackRepository(db)
 	playlistRepository := repository.NewPlaylistRepository(db)
-	userUseCase := usecase.NewUserUseCase(userRepository)
+	genreRepository := repository.NewGenreRepository(db)
+	artistRepository := repository.NewArtistRepository(db)
+	onboardingRepository := repository.NewOnboardingRepository(db)
+	eventRepository := repository.NewEventRepository(db)
+	recommendationRepository := repository.NewRecommendationRepository(db)
+	analyticsRepository := repository.NewAnalyticsRepository(db)
+	userUseCase := usecase.NewUserUseCase(userRepository, playlistRepository)
 	trackUseCase := usecase.NewTrackUseCase(trackRepository)
-	playlistUseCase := usecase.NewPlaylistUseCase(playlistRepository)
+	playlistUseCase := usecase.NewPlaylistUseCase(playlistRepository, playlistRepository)
+	genreUseCase := usecase.NewGenreUseCase(genreRepository)
+	artistUseCase := usecase.NewArtistUseCase(artistRepository)
+	onboardingUseCase := usecase.NewOnboardingUseCase(onboardingRepository)
+	eventUseCase := usecase.NewEventUseCase(eventRepository, playlistRepository)
+	recommendationUseCase := usecase.NewRecommendationUseCase(recommendationRepository)
+	analyticsUseCase := usecase.NewAnalyticsUseCase(analyticsRepository)
 	tokenManager, err := auth.NewTokenManager(cfg.JWTSecret)
 	if err != nil {
 		return err
@@ -34,9 +46,15 @@ func Run(cfg *config.Config) error {
 	userHandler := httpcontroller.NewUserHandler(userUseCase, tokenManager)
 	trackHandler := httpcontroller.NewTrackHandler(trackUseCase)
 	playlistHandler := httpcontroller.NewPlaylistHandler(playlistUseCase)
+	genreHandler := httpcontroller.NewGenreHandler(genreUseCase)
+	artistHandler := httpcontroller.NewArtistHandler(artistUseCase)
+	onboardingHandler := httpcontroller.NewOnboardingHandler(onboardingUseCase)
+	eventHandler := httpcontroller.NewEventHandler(eventUseCase)
+	recommendationHandler := httpcontroller.NewRecommendationHandler(recommendationUseCase)
+	analyticsHandler := httpcontroller.NewAnalyticsHandler(analyticsUseCase)
 	authMiddleware := httpcontroller.NewAuthMiddleware(tokenManager)
 
-	router, err := httpcontroller.NewRouter(userHandler, authMiddleware, trackHandler, playlistHandler)
+	router, err := httpcontroller.NewRouter(userHandler, authMiddleware, trackHandler, playlistHandler, genreHandler, artistHandler, onboardingHandler, eventHandler, recommendationHandler, analyticsHandler)
 	if err != nil {
 		return err
 	}
@@ -44,7 +62,10 @@ func Run(cfg *config.Config) error {
 	server := &http.Server{
 		Addr:              cfg.Address(),
 		Handler:           router,
-		ReadHeaderTimeout: 5 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 
 	log.Printf("starting app=%s port=%s log_level=%s", cfg.AppName, cfg.HTTPPort, cfg.LogLevel)

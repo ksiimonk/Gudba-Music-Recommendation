@@ -1,5 +1,12 @@
+import {
+  ROUTES,
+  isNestedRoute,
+  readRouteId,
+} from './config/routes'
+import { FavoritesPage } from './pages/FavoritesPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
+import { OnboardingPage } from './pages/OnboardingPage'
 import { PlaylistDetailPage } from './pages/PlaylistDetailPage'
 import { PlaylistListPage } from './pages/PlaylistListPage'
 import { RegisterPage } from './pages/RegisterPage'
@@ -10,28 +17,40 @@ import './App.css'
 function App() {
   const pathname = window.location.pathname
 
-  if (pathname === '/login') {
+  if (pathname === ROUTES.login) {
     return <LoginPage />
   }
 
-  if (pathname === '/register') {
+  if (pathname === ROUTES.register) {
     return <RegisterPage />
   }
 
-  if (pathname === '/tracks') {
+  if (pathname === ROUTES.onboarding) {
+    return <OnboardingPage />
+  }
+
+  if (pathname === ROUTES.tracks) {
     return <TrackListPage />
   }
 
-  if (pathname.startsWith('/tracks/')) {
-    return <TrackDetailPage trackId={Number(pathname.split('/')[2])} />
+  if (isNestedRoute(pathname, ROUTES.tracks)) {
+    return <TrackDetailPage trackId={readRouteId(pathname, ROUTES.tracks)} />
   }
 
-  if (pathname === '/playlists') {
+  if (pathname === ROUTES.playlists) {
     return <PlaylistListPage />
   }
 
-  if (pathname.startsWith('/playlists/')) {
-    return <PlaylistDetailPage playlistId={Number(pathname.split('/')[2])} />
+  if (isNestedRoute(pathname, ROUTES.playlists)) {
+    return (
+      <PlaylistDetailPage
+        playlistId={readRouteId(pathname, ROUTES.playlists)}
+      />
+    )
+  }
+
+  if (pathname === ROUTES.favorites) {
+    return <FavoritesPage />
   }
 
   return <HomePage />

@@ -8,20 +8,20 @@ import (
 )
 
 type Config struct {
-	AppName   string
-	HTTPPort  string
-	LogLevel  string
-	PGURL     string
+	AppName  string
+	HTTPPort string
+	LogLevel string
+	PGURL    string
 	JWTSecret string
 }
 
 func NewConfig() (*Config, error) {
 	cfg := &Config{
-		AppName:   getEnv("APP_NAME"),
-		HTTPPort:  getEnv("HTTP_PORT"),
-		LogLevel:  getEnv("LOG_LEVEL"),
-		PGURL:     getEnv("PG_URL"),
-		JWTSecret: getEnv("JWT_SECRET"),
+		AppName:          getEnv("APP_NAME"),
+		HTTPPort:         getEnv("HTTP_PORT"),
+		LogLevel:         getEnv("LOG_LEVEL"),
+		PGURL:            getEnv("PG_URL"),
+		JWTSecret:        getEnv("JWT_SECRET"),
 	}
 
 	var missing []string

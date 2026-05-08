@@ -13,6 +13,10 @@ type fakePlaylistRepository struct {
 	getPlaylistByIDFn func(ctx context.Context, id int64) (*entity.Playlist, error)
 }
 
+func (f *fakePlaylistRepository) GetFavoritesPlaylistByUserID(ctx context.Context, userID int64) (*entity.Playlist, error) {
+	return &entity.Playlist{ID: 1, UserID: userID, Name: "Мои любимые треки"}, nil
+}
+
 func (f *fakePlaylistRepository) ListPlaylists(ctx context.Context) ([]entity.Playlist, error) {
 	if f.listPlaylistsFn != nil {
 		return f.listPlaylistsFn(ctx)
@@ -36,7 +40,7 @@ func TestListPlaylists(t *testing.T) {
 		listPlaylistsFn: func(_ context.Context) ([]entity.Playlist, error) {
 			return []entity.Playlist{{ID: 1, Name: "Lo-Fi Hip Hop Mix"}}, nil
 		},
-	})
+	}, nil)
 
 	playlists, err := playlistUseCase.ListPlaylists(context.Background())
 	if err != nil {
@@ -55,7 +59,7 @@ func TestListPlaylists(t *testing.T) {
 func TestGetPlaylistByIDValidatesID(t *testing.T) {
 	t.Parallel()
 
-	playlistUseCase := NewPlaylistUseCase(&fakePlaylistRepository{})
+	playlistUseCase := NewPlaylistUseCase(&fakePlaylistRepository{}, nil)
 
 	_, err := playlistUseCase.GetPlaylistByID(context.Background(), 0)
 	if !errors.Is(err, ErrInvalidID) {
@@ -70,7 +74,7 @@ func TestGetPlaylistByID(t *testing.T) {
 		getPlaylistByIDFn: func(_ context.Context, id int64) (*entity.Playlist, error) {
 			return &entity.Playlist{ID: id, Name: "Lo-Fi Hip Hop Mix"}, nil
 		},
-	})
+	}, nil)
 
 	playlist, err := playlistUseCase.GetPlaylistByID(context.Background(), 1)
 	if err != nil {

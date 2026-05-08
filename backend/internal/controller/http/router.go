@@ -7,34 +7,81 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	trustedLocalProxy = "127.0.0.1"
+
+	healthRoute = "/healthz"
+	apiPrefix   = "/api/v1"
+	authPrefix  = "/auth"
+
+	registerRoute       = "/register"
+	loginRoute          = "/login"
+	meRoute             = "/me"
+	favoritesRoute      = "/me/favorites"
+	onboardingRoute     = "/me/onboarding"
+	profileRoute        = "/me/profile"
+	tracksRoute         = "/tracks"
+	trackDetailRoute    = "/tracks/:id"
+	playlistsRoute      = "/playlists"
+	playlistDetailRoute = "/playlists/:id"
+	genresRoute         = "/genres"
+	artistsRoute        = "/artists"
+	eventRoute          = "/events"
+	trackPlayRoute      = "/tracks/:id/play"
+	trackLikeRoute      = "/tracks/:id/like"
+	trackDislikeRoute   = "/tracks/:id/dislike"
+	trackSkipRoute      = "/tracks/:id/skip"
+	playlistOpenRoute   = "/playlists/:id/open"
+	recommendationsTracksRoute    = "/recommendations/tracks"
+	recommendationsPlaylistsRoute = "/recommendations/playlists"
+	adminStatsRoute               = "/admin/stats"
+	adminMetricsRoute             = "/admin/recommendation-metrics"
+
+	corsAllowHeaders = "Authorization, Content-Type"
+	corsAllowMethods = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+	originHeader     = "Origin"
+	varyHeader       = "Origin"
+)
+
+var allowedFrontendOriginPrefixes = []string{
+	"http://127.0.0.1:",
+	"http://localhost:",
+}
+
 func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHandlers ...any) (*gin.Engine, error) {
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), corsMiddleware())
 
-	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
+	if err := router.SetTrustedProxies([]string{trustedLocalProxy}); err != nil {
 		return nil, err
 	}
 
 	registerSwaggerRoutes(router)
 
-	router.GET("/healthz", func(c *gin.Context) {
+	router.GET(healthRoute, func(c *gin.Context) {
 		c.JSON(nethttp.StatusOK, gin.H{
 			"message": "ok",
 		})
 	})
 
-	api := router.Group("/api/v1")
+	api := router.Group(apiPrefix)
 	{
-		auth := api.Group("/auth")
+		auth := api.Group(authPrefix)
 		{
-			auth.POST("/register", userHandler.Register)
-			auth.POST("/login", userHandler.Login)
+			auth.POST(registerRoute, userHandler.Register)
+			auth.POST(loginRoute, userHandler.Login)
 		}
 
-		api.GET("/me", authMiddleware.RequireAuth, userHandler.Me)
+		api.GET(meRoute, authMiddleware.RequireAuth, userHandler.Me)
 
 		var trackHandler *TrackHandler
 		var playlistHandler *PlaylistHandler
+		var genreHandler *GenreHandler
+		var artistHandler *ArtistHandler
+		var onboardingHandler *OnboardingHandler
+		var eventHandler *EventHandler
+		var recommendationHandler *RecommendationHandler
+		var analyticsHandler *AnalyticsHandler
 
 		for _, handler := range routeHandlers {
 			switch typedHandler := handler.(type) {
@@ -42,17 +89,62 @@ func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHa
 				trackHandler = typedHandler
 			case *PlaylistHandler:
 				playlistHandler = typedHandler
+			case *GenreHandler:
+				genreHandler = typedHandler
+			case *ArtistHandler:
+				artistHandler = typedHandler
+			case *OnboardingHandler:
+				onboardingHandler = typedHandler
+			case *EventHandler:
+				eventHandler = typedHandler
+			case *RecommendationHandler:
+				recommendationHandler = typedHandler
+			case *AnalyticsHandler:
+				analyticsHandler = typedHandler
 			}
 		}
 
 		if trackHandler != nil {
-			api.GET("/tracks", trackHandler.ListTracks)
-			api.GET("/tracks/:id", trackHandler.GetTrack)
+			api.GET(tracksRoute, trackHandler.ListTracks)
+			api.GET(trackDetailRoute, trackHandler.GetTrack)
 		}
 
 		if playlistHandler != nil {
-			api.GET("/playlists", playlistHandler.ListPlaylists)
-			api.GET("/playlists/:id", playlistHandler.GetPlaylist)
+			api.GET(playlistsRoute, playlistHandler.ListPlaylists)
+			api.GET(playlistDetailRoute, playlistHandler.GetPlaylist)
+			api.GET(favoritesRoute, authMiddleware.RequireAuth, playlistHandler.GetFavorites)
+		}
+
+		if genreHandler != nil {
+			api.GET(genresRoute, genreHandler.ListGenres)
+		}
+
+		if artistHandler != nil {
+			api.GET(artistsRoute, artistHandler.ListArtists)
+		}
+
+		if onboardingHandler != nil {
+			api.POST(onboardingRoute, authMiddleware.RequireAuth, onboardingHandler.SaveOnboarding)
+			api.GET(profileRoute, authMiddleware.RequireAuth, onboardingHandler.GetProfile)
+		}
+
+		if eventHandler != nil {
+			api.POST(eventRoute, authMiddleware.RequireAuth, eventHandler.RecordEvent)
+			api.POST(trackPlayRoute, authMiddleware.RequireAuth, eventHandler.RecordTrackPlay)
+			api.POST(trackLikeRoute, authMiddleware.RequireAuth, eventHandler.ToggleTrackLike)
+			api.POST(trackDislikeRoute, authMiddleware.RequireAuth, eventHandler.RecordTrackDislike)
+			api.POST(trackSkipRoute, authMiddleware.RequireAuth, eventHandler.RecordTrackSkip)
+			api.POST(playlistOpenRoute, authMiddleware.RequireAuth, eventHandler.RecordPlaylistOpen)
+		}
+
+		if recommendationHandler != nil {
+			api.GET(recommendationsTracksRoute, authMiddleware.RequireAuth, recommendationHandler.ListTrackRecommendations)
+			api.GET(recommendationsPlaylistsRoute, authMiddleware.RequireAuth, recommendationHandler.ListPlaylistRecommendations)
+		}
+
+		if analyticsHandler != nil {
+			api.GET(adminStatsRoute, authMiddleware.RequireAuth, analyticsHandler.GetStats)
+			api.GET(adminMetricsRoute, authMiddleware.RequireAuth, analyticsHandler.GetRecommendationMetrics)
 		}
 	}
 
@@ -61,12 +153,12 @@ func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHa
 
 func corsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		origin := c.GetHeader("Origin")
+		origin := c.GetHeader(originHeader)
 		if isAllowedFrontendOrigin(origin) {
 			c.Header("Access-Control-Allow-Origin", origin)
-			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type")
-			c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-			c.Header("Vary", "Origin")
+			c.Header("Access-Control-Allow-Headers", corsAllowHeaders)
+			c.Header("Access-Control-Allow-Methods", corsAllowMethods)
+			c.Header(varyHeader, originHeader)
 		}
 
 		if c.Request.Method == nethttp.MethodOptions {
@@ -79,6 +171,11 @@ func corsMiddleware() gin.HandlerFunc {
 }
 
 func isAllowedFrontendOrigin(origin string) bool {
-	return strings.HasPrefix(origin, "http://127.0.0.1:") ||
-		strings.HasPrefix(origin, "http://localhost:")
+	for _, prefix := range allowedFrontendOriginPrefixes {
+		if strings.HasPrefix(origin, prefix) {
+			return true
+		}
+	}
+
+	return false
 }

@@ -16,6 +16,7 @@ import (
 type playlistUseCase interface {
 	ListPlaylists(ctx context.Context) ([]entity.Playlist, error)
 	GetPlaylistByID(ctx context.Context, id int64) (*entity.Playlist, error)
+	GetFavorites(ctx context.Context, userID int64) (*entity.Playlist, error)
 }
 
 type PlaylistHandler struct {
@@ -71,6 +72,22 @@ func (h *PlaylistHandler) GetPlaylist(c *gin.Context) {
 	c.JSON(nethttp.StatusOK, gin.H{
 		"playlist": playlist,
 	})
+}
+
+func (h *PlaylistHandler) GetFavorites(c *gin.Context) {
+	claims, ok := getAuthClaims(c)
+	if !ok {
+		c.JSON(nethttp.StatusUnauthorized, gin.H{"message": "authorization required"})
+		return
+	}
+
+	playlist, err := h.playlistUseCase.GetFavorites(c.Request.Context(), claims.UserID)
+	if err != nil {
+		c.JSON(nethttp.StatusInternalServerError, gin.H{"message": "failed to load favorites"})
+		return
+	}
+
+	c.JSON(nethttp.StatusOK, gin.H{"playlist": playlist})
 }
 
 func parsePlaylistID(value string) (int64, bool) {

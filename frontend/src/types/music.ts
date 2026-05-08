@@ -18,6 +18,7 @@ export type Track = {
   id: number
   title: string
   duration_ms: number
+  preview_url?: string
   spotify_url?: string
   cover_url?: string
   popularity_score: number

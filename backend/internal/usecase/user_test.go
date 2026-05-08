@@ -15,6 +15,7 @@ import (
 type fakeUserRepository struct {
 	createUserFn     func(ctx context.Context, user *entity.User) error
 	getUserByEmailFn func(ctx context.Context, email string) (*entity.User, error)
+	deleteUserFn     func(ctx context.Context, id int64) error
 }
 
 func (f *fakeUserRepository) CreateUser(ctx context.Context, user *entity.User) error {
@@ -33,6 +34,14 @@ func (f *fakeUserRepository) GetUserByEmail(ctx context.Context, email string) (
 	return nil, repository.ErrUserNotFound
 }
 
+func (f *fakeUserRepository) DeleteUser(ctx context.Context, id int64) error {
+	if f.deleteUserFn != nil {
+		return f.deleteUserFn(ctx, id)
+	}
+
+	return nil
+}
+
 func TestRegisterUserHashesPassword(t *testing.T) {
 	t.Parallel()
 
@@ -49,7 +58,7 @@ func TestRegisterUserHashesPassword(t *testing.T) {
 
 			return nil
 		},
-	})
+	}, nil)
 
 	user, err := userUseCase.RegisterUser(context.Background(), " Test@Example.com ", "plain-password")
 	if err != nil {
@@ -86,7 +95,7 @@ func TestRegisterUserReturnsDuplicateEmailError(t *testing.T) {
 			createCalled = true
 			return nil
 		},
-	})
+	}, nil)
 
 	_, err := userUseCase.RegisterUser(context.Background(), "test@example.com", "plain-password")
 	if !errors.Is(err, repository.ErrUserAlreadyExists) {
@@ -105,7 +114,7 @@ func TestRegisterUserReturnsCreateUserDuplicateError(t *testing.T) {
 		createUserFn: func(_ context.Context, user *entity.User) error {
 			return repository.ErrUserAlreadyExists
 		},
-	})
+	}, nil)
 
 	_, err := userUseCase.RegisterUser(context.Background(), "test@example.com", "plain-password")
 	if !errors.Is(err, repository.ErrUserAlreadyExists) {
@@ -116,7 +125,7 @@ func TestRegisterUserReturnsCreateUserDuplicateError(t *testing.T) {
 func TestRegisterUserValidatesInput(t *testing.T) {
 	t.Parallel()
 
-	userUseCase := NewUserUseCase(&fakeUserRepository{})
+	userUseCase := NewUserUseCase(&fakeUserRepository{}, nil)
 
 	_, err := userUseCase.RegisterUser(context.Background(), "   ", "plain-password")
 	if !errors.Is(err, ErrEmailRequired) {
@@ -145,7 +154,7 @@ func TestLoginUserSuccess(t *testing.T) {
 				PasswordHash: string(passwordHash),
 			}, nil
 		},
-	})
+	}, nil)
 
 	user, err := userUseCase.LoginUser(context.Background(), " Test@Example.com ", "plain-password")
 	if err != nil {
@@ -173,7 +182,7 @@ func TestLoginUserInvalidCredentials(t *testing.T) {
 				PasswordHash: string(passwordHash),
 			}, nil
 		},
-	})
+	}, nil)
 
 	_, err = userUseCase.LoginUser(context.Background(), "test@example.com", "plain-password")
 	if !errors.Is(err, ErrInvalidCredentials) {
@@ -188,7 +197,7 @@ func TestLoginUserUserNotFound(t *testing.T) {
 		getUserByEmailFn: func(_ context.Context, email string) (*entity.User, error) {
 			return nil, repository.ErrUserNotFound
 		},
-	})
+	}, nil)
 
 	_, err := userUseCase.LoginUser(context.Background(), "test@example.com", "plain-password")
 	if !errors.Is(err, ErrInvalidCredentials) {
@@ -203,7 +212,7 @@ func TestGetUserByEmail(t *testing.T) {
 		getUserByEmailFn: func(_ context.Context, email string) (*entity.User, error) {
 			return &entity.User{ID: 1, Email: email}, nil
 		},
-	})
+	}, nil)
 
 	user, err := userUseCase.GetUserByEmail(context.Background(), " Test@Example.com ")
 	if err != nil {

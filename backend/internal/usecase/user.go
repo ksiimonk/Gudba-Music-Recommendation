@@ -19,14 +19,20 @@ var ErrInvalidCredentials = errors.New("invalid email or password")
 type userRepository interface {
 	CreateUser(ctx context.Context, user *entity.User) error
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
+	DeleteUser(ctx context.Context, id int64) error
+}
+
+type playlistCreator interface {
+	CreateFavoritesPlaylist(ctx context.Context, userID int64) (*entity.Playlist, error)
 }
 
 type UserUseCase struct {
-	userRepository userRepository
+	userRepository  userRepository
+	playlistCreator playlistCreator
 }
 
-func NewUserUseCase(userRepository userRepository) *UserUseCase {
-	return &UserUseCase{userRepository: userRepository}
+func NewUserUseCase(userRepository userRepository, playlistCreator playlistCreator) *UserUseCase {
+	return &UserUseCase{userRepository: userRepository, playlistCreator: playlistCreator}
 }
 
 func (u *UserUseCase) RegisterUser(ctx context.Context, email, password string) (*entity.User, error) {
@@ -64,6 +70,15 @@ func (u *UserUseCase) RegisterUser(ctx context.Context, email, password string) 
 
 	if err := u.userRepository.CreateUser(ctx, user); err != nil {
 		return nil, err
+	}
+
+	if u.playlistCreator != nil {
+		if _, err := u.playlistCreator.CreateFavoritesPlaylist(ctx, user.ID); err != nil {
+			if delErr := u.userRepository.DeleteUser(ctx, user.ID); delErr != nil {
+				return nil, fmt.Errorf("create favorites playlist failed: %w; cleanup also failed: %v", err, delErr)
+			}
+			return nil, fmt.Errorf("create favorites playlist: %w; user deleted for consistency", err)
+		}
 	}
 
 	return user, nil

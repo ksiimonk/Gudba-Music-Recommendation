@@ -5,3 +5,4 @@ export type {
   User,
 } from './auth'
 export type { Artist, Genre, Playlist, Track } from './music'
+export type { OnboardingRequest, UserProfile } from './onboarding'

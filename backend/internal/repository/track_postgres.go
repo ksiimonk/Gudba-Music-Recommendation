@@ -77,6 +77,7 @@ const trackFields = `
 	t.id,
 	t.title,
 	t.duration_ms,
+	t.preview_url,
 	t.spotify_url,
 	t.cover_url,
 	t.popularity_score,
@@ -113,6 +114,7 @@ type trackRowScanner interface {
 func scanTrack(scanner trackRowScanner) (entity.Track, error) {
 	var track entity.Track
 	var artist entity.Artist
+	var trackPreviewURL sql.NullString
 	var trackSpotifyURL sql.NullString
 	var coverURL sql.NullString
 	var artistImageURL sql.NullString
@@ -124,6 +126,7 @@ func scanTrack(scanner trackRowScanner) (entity.Track, error) {
 		&track.ID,
 		&track.Title,
 		&track.DurationMS,
+		&trackPreviewURL,
 		&trackSpotifyURL,
 		&coverURL,
 		&track.PopularityScore,
@@ -146,6 +149,7 @@ func scanTrack(scanner trackRowScanner) (entity.Track, error) {
 		return entity.Track{}, err
 	}
 
+	track.PreviewURL = nullableString(trackPreviewURL)
 	track.SpotifyURL = nullableString(trackSpotifyURL)
 	track.CoverURL = nullableString(coverURL)
 	artist.ImageURL = nullableString(artistImageURL)

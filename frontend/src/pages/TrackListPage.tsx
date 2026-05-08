@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { getApiErrorMessage, listTracks } from '../api'
 import { AppShell } from '../components/AppShell'
 import { TrackRow } from '../components/TrackRow'
+import { ROUTES, getTrackRoute } from '../config/routes'
 import type { Track } from '../types'
 
 export function TrackListPage() {
@@ -50,7 +51,7 @@ export function TrackListPage() {
             <span>Музыка</span>
             <h1>Треки</h1>
           </div>
-          <a href="/playlists">Плейлисты</a>
+          <a href={ROUTES.playlists}>Плейлисты</a>
         </header>
 
         {popularTracks.length > 0 && (
@@ -60,7 +61,7 @@ export function TrackListPage() {
               <h2>{popularTracks[0].title}</h2>
               <p>{popularTracks[0].artist.name}</p>
             </div>
-            <a href={`/tracks/${popularTracks[0].id}`}>Открыть</a>
+            <a href={getTrackRoute(popularTracks[0].id)}>Открыть</a>
           </section>
         )}
 

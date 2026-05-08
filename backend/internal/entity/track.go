@@ -21,9 +21,11 @@ type Genre struct {
 type Track struct {
 	ID              int64     `json:"id" db:"id"`
 	Title           string    `json:"title" db:"title"`
+	ArtistID        int64     `json:"artist_id" db:"artist_id"`
 	Artist          Artist    `json:"artist"`
 	Genres          []Genre   `json:"genres"`
 	DurationMS      int       `json:"duration_ms" db:"duration_ms"`
+	PreviewURL      string    `json:"preview_url,omitempty" db:"preview_url"`
 	SpotifyURL      string    `json:"spotify_url,omitempty" db:"spotify_url"`
 	CoverURL        string    `json:"cover_url,omitempty" db:"cover_url"`
 	PopularityScore int       `json:"popularity_score" db:"popularity_score"`
