@@ -25,7 +25,6 @@ export function SidebarNavigation({
       <nav className="sidebar-links">
         {navigationItems.map((item) => {
           const isActive = isNavigationItemActive(currentPath, item.href)
-
           return (
             <a
               className={isActive ? 'active' : ''}
@@ -40,10 +39,17 @@ export function SidebarNavigation({
         })}
       </nav>
 
-      <section className="sidebar-library" aria-label="Библиотека">
-        <span>Твоя библиотека</span>
-        <strong>Рекомендации, треки и плейлисты</strong>
-      </section>
+      <div className="sidebar-divider" />
+
+      <button className="sidebar-playlist-btn" type="button" aria-label="Создать плейлист">
+        <span style={{ fontSize: 20 }}>＋</span>
+        Создать плейлист
+      </button>
+
+      <a className="sidebar-favorites" href={ROUTES.favorites}>
+        <span style={{ fontSize: 20, color: 'var(--accent)' }}>♥</span>
+        Любимые треки
+      </a>
 
       <section className="sidebar-auth" aria-label="Аккаунт">
         {userEmail ? (
@@ -61,7 +67,9 @@ export function SidebarNavigation({
           </>
         ) : (
           <>
-            <span>{isAuthLoading ? 'Проверяем вход...' : 'Аккаунт'}</span>
+            <span style={{ fontSize: 14, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+              {isAuthLoading ? 'Проверяем вход...' : 'Аккаунт'}
+            </span>
             <a className="auth-link" href={ROUTES.login}>
               Войти
             </a>

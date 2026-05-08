@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS recommendation_factors (
     id SERIAL PRIMARY KEY,
-    impression_id INTEGER NOT NULL REFERENCES recommendation_impressions(id) ON DELETE CASCADE,
+    impression_id BIGINT NOT NULL REFERENCES recommendation_impressions(id) ON DELETE CASCADE,
     factor_name VARCHAR NOT NULL,
     factor_value NUMERIC,
     weight NUMERIC,

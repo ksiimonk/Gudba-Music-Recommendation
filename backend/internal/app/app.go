@@ -29,13 +29,13 @@ func Run(cfg *config.Config) error {
 	eventRepository := repository.NewEventRepository(db)
 	recommendationRepository := repository.NewRecommendationRepository(db)
 	analyticsRepository := repository.NewAnalyticsRepository(db)
-	userUseCase := usecase.NewUserUseCase(userRepository)
+	userUseCase := usecase.NewUserUseCase(userRepository, playlistRepository)
 	trackUseCase := usecase.NewTrackUseCase(trackRepository)
-	playlistUseCase := usecase.NewPlaylistUseCase(playlistRepository)
+	playlistUseCase := usecase.NewPlaylistUseCase(playlistRepository, playlistRepository)
 	genreUseCase := usecase.NewGenreUseCase(genreRepository)
 	artistUseCase := usecase.NewArtistUseCase(artistRepository)
 	onboardingUseCase := usecase.NewOnboardingUseCase(onboardingRepository)
-	eventUseCase := usecase.NewEventUseCase(eventRepository)
+	eventUseCase := usecase.NewEventUseCase(eventRepository, playlistRepository)
 	recommendationUseCase := usecase.NewRecommendationUseCase(recommendationRepository)
 	analyticsUseCase := usecase.NewAnalyticsUseCase(analyticsRepository)
 	tokenManager, err := auth.NewTokenManager(cfg.JWTSecret)
@@ -62,7 +62,10 @@ func Run(cfg *config.Config) error {
 	server := &http.Server{
 		Addr:              cfg.Address(),
 		Handler:           router,
-		ReadHeaderTimeout: 5 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 
 	log.Printf("starting app=%s port=%s log_level=%s", cfg.AppName, cfg.HTTPPort, cfg.LogLevel)

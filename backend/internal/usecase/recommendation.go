@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"log"
 	"math"
 	"sort"
 
@@ -17,6 +18,7 @@ type recommendationRepository interface {
 	SaveRecommendationRequest(ctx context.Context, userID int64, requestType string) (int64, error)
 	SaveImpressions(ctx context.Context, impressions []entity.RecommendationImpression) ([]int64, error)
 	SaveFactors(ctx context.Context, factors []entity.RecommendationFactor) error
+	GetFavoriteTrackIDs(ctx context.Context, userID int64) (map[int64]bool, error)
 }
 
 type RecommendationUseCase struct {
@@ -36,8 +38,16 @@ func (u *RecommendationUseCase) GetTrackRecommendations(ctx context.Context, use
 		limit = 10
 	}
 
-	profile, _ := u.recommendationRepository.GetUserProfile(ctx, userID)
-	events, _ := u.recommendationRepository.GetRecentEvents(ctx, userID, 200)
+	profile, err := u.recommendationRepository.GetUserProfile(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	events, err := u.recommendationRepository.GetRecentEvents(ctx, userID, 200)
+	if err != nil {
+		return nil, err
+	}
+
 	allTracks, err := u.recommendationRepository.ListCandidateTracks(ctx)
 	if err != nil {
 		return nil, err
@@ -45,8 +55,12 @@ func (u *RecommendationUseCase) GetTrackRecommendations(ctx context.Context, use
 
 	likedGenreIDs := buildLikedGenreIDs(events, allTracks)
 	playedIDs, skippedIDs := buildSkippedIDs(events)
+	favoriteTrackIDs, err := u.recommendationRepository.GetFavoriteTrackIDs(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 
-	scoredTracks := scoreCandidates(allTracks, profile, likedGenreIDs)
+	scoredTracks := scoreCandidates(allTracks, profile, likedGenreIDs, favoriteTrackIDs)
 
 	sort.Slice(scoredTracks, func(i, j int) bool {
 		return scoredTracks[i].Score > scoredTracks[j].Score
@@ -97,40 +111,33 @@ func (u *RecommendationUseCase) GetTrackRecommendations(ctx context.Context, use
 			remaining := topN[i].Score - genreContrib
 			artistContrib := math.Min(remaining, 25)
 			remaining -= artistContrib
+			favoriteContrib := math.Min(remaining, 10)
+			remaining -= favoriteContrib
 			popularityContrib := math.Min(remaining, 20)
 			remaining -= popularityContrib
 			interestContrib := remaining
 
-			addFactor := func(name string, value float64) {
-				weight := 0.0
-				switch name {
-				case "genre_match":
-					weight = 0.40
-				case "artist_match":
-					weight = 0.25
-				case "popularity":
-					weight = 0.20
-				case "recent_interest":
-					weight = 0.15
-				}
-
+			addFactor := func(name string, value, weight float64) {
 				factors = append(factors, entity.RecommendationFactor{
 					ImpressionID: impID,
 					FactorName:   name,
 					FactorValue:  value,
 					Weight:       weight,
-					Contribution: contribution(name, value, genreContrib, artistContrib, popularityContrib, interestContrib),
+					Contribution: contribution(name, value, genreContrib, artistContrib, favoriteContrib, popularityContrib, interestContrib),
 				})
 			}
 
-			addFactor("genre_match", genreContrib)
-			addFactor("artist_match", artistContrib)
-			addFactor("popularity", popularityContrib)
-			addFactor("recent_interest", interestContrib)
+			addFactor("genre_match", genreContrib, 0.36)
+			addFactor("artist_match", artistContrib, 0.23)
+			addFactor("is_favorited", favoriteContrib, 0.09)
+			addFactor("popularity", popularityContrib, 0.18)
+			addFactor("recent_interest", interestContrib, 0.14)
 		}
 
 		if len(factors) > 0 {
-			u.recommendationRepository.SaveFactors(ctx, factors)
+			if err := u.recommendationRepository.SaveFactors(ctx, factors); err != nil {
+				log.Printf("save recommendation factors: %v", err)
+			}
 		}
 	}
 
@@ -146,9 +153,21 @@ func (u *RecommendationUseCase) GetPlaylistRecommendations(ctx context.Context, 
 		limit = 6
 	}
 
-	profile, _ := u.recommendationRepository.GetUserProfile(ctx, userID)
-	events, _ := u.recommendationRepository.GetRecentEvents(ctx, userID, 200)
-	allTracks, _ := u.recommendationRepository.ListCandidateTracks(ctx)
+	profile, err := u.recommendationRepository.GetUserProfile(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	events, err := u.recommendationRepository.GetRecentEvents(ctx, userID, 200)
+	if err != nil {
+		return nil, err
+	}
+
+	allTracks, err := u.recommendationRepository.ListCandidateTracks(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	allPlaylists, err := u.recommendationRepository.ListPlaylistsWithTracks(ctx)
 	if err != nil {
 		return nil, err
@@ -203,7 +222,9 @@ func (u *RecommendationUseCase) GetPlaylistRecommendations(ctx context.Context, 
 		})
 	}
 
-	u.recommendationRepository.SaveImpressions(ctx, impressions)
+	if _, err := u.recommendationRepository.SaveImpressions(ctx, impressions); err != nil {
+		log.Printf("save playlist recommendation impressions: %v", err)
+	}
 
 	return scored, nil
 }
@@ -215,29 +236,19 @@ func toTrackRecommendations(scored []scoredTrack) []entity.TrackRecommendation {
 			Track:       s.Track,
 			Score:       s.Score,
 			Explanation: s.Explanation,
+			IsFavorited: s.IsFavorited,
 		}
 	}
 	return result
 }
 
-func contribution(name string, value, genreContrib, artistContrib, popularityContrib, interestContrib float64) float64 {
-	total := genreContrib + artistContrib + popularityContrib + interestContrib
+func contribution(name string, value, genreContrib, artistContrib, favoriteContrib, popularityContrib, interestContrib float64) float64 {
+	total := genreContrib + artistContrib + favoriteContrib + popularityContrib + interestContrib
 	if total == 0 {
 		return 0
 	}
 
-	switch name {
-	case "genre_match":
-		return value / total
-	case "artist_match":
-		return value / total
-	case "popularity":
-		return value / total
-	case "recent_interest":
-		return value / total
-	}
-
-	return 0
+	return value / total
 }
 
 func buildLikedGenreIDs(events []entity.Event, tracks []entity.Track) map[int64]bool {
@@ -312,19 +323,7 @@ func rerankForDiversity(tracks []scoredTrack, limit int) []scoredTrack {
 	var result []scoredTrack
 
 	for _, t := range tracks {
-		artistCount[t.Track.Artist.ID]++
-
-		for _, g := range t.Track.Genres {
-			if artistCount[t.Track.Artist.ID] > 2 {
-				continue
-			}
-
-			if genreCount[g.ID] >= 3 {
-				continue
-			}
-		}
-
-		if artistCount[t.Track.Artist.ID] > 2 {
+		if artistCount[t.Track.Artist.ID] >= 2 {
 			continue
 		}
 
@@ -340,7 +339,6 @@ func rerankForDiversity(tracks []scoredTrack, limit int) []scoredTrack {
 		}
 
 		result = append(result, t)
-		artistCount[t.Track.Artist.ID]--
 		artistCount[t.Track.Artist.ID]++
 
 		for _, g := range t.Track.Genres {

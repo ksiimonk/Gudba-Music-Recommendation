@@ -33,6 +33,7 @@ type TrackRecommendation struct {
 	Track       Track   `json:"track"`
 	Score       float64 `json:"score"`
 	Explanation string  `json:"explanation"`
+	IsFavorited bool    `json:"is_favorited"`
 }
 
 type PlaylistRecommendation struct {

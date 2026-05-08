@@ -19,6 +19,7 @@ type fakeEventUseCase struct {
 	recordTrackDislikeFn  func(ctx context.Context, userID int64, trackID int64) error
 	recordTrackSkipFn     func(ctx context.Context, userID int64, trackID int64) error
 	recordPlaylistOpenFn  func(ctx context.Context, userID int64, playlistID int64) error
+	toggleLikeFn          func(ctx context.Context, userID, trackID int64) (bool, error)
 }
 
 func (f *fakeEventUseCase) RecordEvent(ctx context.Context, userID int64, entityType, eventType string, entityID int64) error {
@@ -54,6 +55,13 @@ func (f *fakeEventUseCase) RecordTrackSkip(ctx context.Context, userID int64, tr
 		return f.recordTrackSkipFn(ctx, userID, trackID)
 	}
 	return nil
+}
+
+func (f *fakeEventUseCase) ToggleLike(ctx context.Context, userID, trackID int64) (bool, error) {
+	if f.toggleLikeFn != nil {
+		return f.toggleLikeFn(ctx, userID, trackID)
+	}
+	return true, nil
 }
 
 func (f *fakeEventUseCase) RecordPlaylistOpen(ctx context.Context, userID int64, playlistID int64) error {

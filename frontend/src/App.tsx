@@ -3,6 +3,7 @@ import {
   isNestedRoute,
   readRouteId,
 } from './config/routes'
+import { FavoritesPage } from './pages/FavoritesPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { OnboardingPage } from './pages/OnboardingPage'
@@ -46,6 +47,10 @@ function App() {
         playlistId={readRouteId(pathname, ROUTES.playlists)}
       />
     )
+  }
+
+  if (pathname === ROUTES.favorites) {
+    return <FavoritesPage />
   }
 
   return <HomePage />

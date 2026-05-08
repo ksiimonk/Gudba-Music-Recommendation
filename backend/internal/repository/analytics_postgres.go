@@ -71,7 +71,7 @@ func (r *AnalyticsRepository) GetRecommendationMetrics(ctx context.Context) (*en
 			COALESCE((SELECT COUNT(*) FROM events WHERE event_type = 'dislike'), 0),
 			COALESCE((SELECT COUNT(*) FROM events WHERE event_type = 'skip'), 0),
 			COALESCE((SELECT COUNT(DISTINCT entity_id) FROM recommendation_impressions WHERE entity_type = 'track'), 0),
-			COALESCE((SELECT COUNT(*) FROM tracks), 1)
+			(SELECT COUNT(*) FROM tracks)
 	`).Scan(
 		&likesCount,
 		&dislikesCount,

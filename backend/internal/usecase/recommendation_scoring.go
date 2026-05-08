@@ -10,9 +10,10 @@ type scoredTrack struct {
 	Track       entity.Track
 	Score       float64
 	Explanation string
+	IsFavorited bool
 }
 
-func scoreCandidates(tracks []entity.Track, profile *entity.UserProfile, likedGenreIDs map[int64]bool) []scoredTrack {
+func scoreCandidates(tracks []entity.Track, profile *entity.UserProfile, likedGenreIDs, favoriteTrackIDs map[int64]bool) []scoredTrack {
 	if profile == nil || (len(profile.FavoriteGenreIDs) == 0 && len(profile.FavoriteArtistIDs) == 0) {
 		return coldStartScores(tracks)
 	}
@@ -27,8 +28,9 @@ func scoreCandidates(tracks []entity.Track, profile *entity.UserProfile, likedGe
 		artistScore := calcArtistScore(track, favArtists)
 		popularityScore := calcPopularityScore(track)
 		interestScore := calcInterestScore(track, likedGenreIDs)
+		favoriteScore := calcFavoriteScore(track, favoriteTrackIDs)
 
-		total := genreScore + artistScore + popularityScore + interestScore
+		total := genreScore + artistScore + popularityScore + interestScore + favoriteScore
 
 		explanation := buildExplanation(genreScore, artistScore, popularityScore, interestScore)
 
@@ -36,6 +38,7 @@ func scoreCandidates(tracks []entity.Track, profile *entity.UserProfile, likedGe
 			Track:       track,
 			Score:       math.Round(total*100) / 100,
 			Explanation: explanation,
+			IsFavorited: favoriteTrackIDs != nil && favoriteTrackIDs[track.ID],
 		})
 	}
 
@@ -98,6 +101,18 @@ func calcInterestScore(track entity.Track, likedGenreIDs map[int64]bool) float64
 		if likedGenreIDs[g.ID] {
 			return 15
 		}
+	}
+
+	return 0
+}
+
+func calcFavoriteScore(track entity.Track, favoriteTrackIDs map[int64]bool) float64 {
+	if len(favoriteTrackIDs) == 0 {
+		return 0
+	}
+
+	if favoriteTrackIDs[track.ID] {
+		return 10
 	}
 
 	return 0

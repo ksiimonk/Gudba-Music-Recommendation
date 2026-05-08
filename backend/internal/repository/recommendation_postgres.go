@@ -41,10 +41,18 @@ func (r *RecommendationRepository) GetUserProfile(ctx context.Context, userID in
 		return nil, fmt.Errorf("get user profile: %w", err)
 	}
 
-	json.Unmarshal(genreRaw, &profile.FavoriteGenreIDs)
-	json.Unmarshal(artistRaw, &profile.FavoriteArtistIDs)
-	json.Unmarshal(trackRaw, &profile.StarterTrackIDs)
-	json.Unmarshal(contextRaw, &profile.Contexts)
+	if err := json.Unmarshal(genreRaw, &profile.FavoriteGenreIDs); err != nil {
+		return nil, fmt.Errorf("unmarshal favorite_genre_ids: %w", err)
+	}
+	if err := json.Unmarshal(artistRaw, &profile.FavoriteArtistIDs); err != nil {
+		return nil, fmt.Errorf("unmarshal favorite_artist_ids: %w", err)
+	}
+	if err := json.Unmarshal(trackRaw, &profile.StarterTrackIDs); err != nil {
+		return nil, fmt.Errorf("unmarshal starter_track_ids: %w", err)
+	}
+	if err := json.Unmarshal(contextRaw, &profile.Contexts); err != nil {
+		return nil, fmt.Errorf("unmarshal contexts: %w", err)
+	}
 
 	return &profile, nil
 }
@@ -78,6 +86,10 @@ func (r *RecommendationRepository) GetRecentEvents(ctx context.Context, userID i
 		events = append(events, event)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate events: %w", err)
+	}
+
 	return events, nil
 }
 
@@ -104,6 +116,10 @@ func (r *RecommendationRepository) ListCandidateTracks(ctx context.Context) ([]e
 		}
 
 		tracks = append(tracks, track)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate candidate tracks: %w", err)
 	}
 
 	return tracks, nil
@@ -172,6 +188,38 @@ func (r *RecommendationRepository) SaveFactors(ctx context.Context, factors []en
 	return nil
 }
 
+func (r *RecommendationRepository) GetFavoriteTrackIDs(ctx context.Context, userID int64) (map[int64]bool, error) {
+	if r == nil || r.db == nil {
+		return nil, errors.New("recommendation repository database is nil")
+	}
+
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT pt.track_id
+		FROM playlist_tracks pt
+		INNER JOIN playlists p ON p.id = pt.playlist_id
+		WHERE p.user_id = $1 AND p.name = 'Мои любимые треки' AND p.is_public = false
+	`, userID)
+	if err != nil {
+		return nil, fmt.Errorf("get favorite track ids: %w", err)
+	}
+	defer rows.Close()
+
+	result := make(map[int64]bool)
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("scan favorite track id: %w", err)
+		}
+		result[id] = true
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate favorite track ids: %w", err)
+	}
+
+	return result, nil
+}
+
 func (r *RecommendationRepository) ListPlaylistsWithTracks(ctx context.Context) ([]entity.Playlist, error) {
 	if r == nil || r.db == nil {
 		return nil, errors.New("recommendation repository database is nil")
@@ -221,6 +269,11 @@ func (r *RecommendationRepository) ListPlaylistsWithTracks(ctx context.Context) 
 			}
 
 			playlists[i].Tracks = append(playlists[i].Tracks, track)
+		}
+
+		if err := trackRows.Err(); err != nil {
+			trackRows.Close()
+			return nil, fmt.Errorf("iterate tracks for playlist %d: %w", pl.ID, err)
 		}
 
 		trackRows.Close()

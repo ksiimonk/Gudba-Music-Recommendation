@@ -22,6 +22,11 @@ export const navigationItems: NavigationItem[] = [
     label: 'Плейлисты',
     icon: '▣',
   },
+  {
+    href: ROUTES.favorites,
+    label: 'Избранное',
+    icon: '♥',
+  },
 ]
 
 export function isNavigationItemActive(pathname: string, href: string) {

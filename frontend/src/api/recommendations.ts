@@ -6,6 +6,7 @@ export type TrackRecommendation = {
   track: Track
   score: number
   explanation: string
+  is_favorited?: boolean
 }
 
 export type PlaylistRecommendation = {

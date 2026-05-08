@@ -18,7 +18,6 @@ export const API_ENDPOINTS = {
   artists: '/api/v1/artists',
   onboarding: '/api/v1/me/onboarding',
   profile: '/api/v1/me/profile',
-  events: '/api/v1/events',
   trackRecommendations: '/api/v1/recommendations/tracks',
   playlistRecommendations: '/api/v1/recommendations/playlists',
 } as const

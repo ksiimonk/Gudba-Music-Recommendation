@@ -17,3 +17,7 @@ export function listPlaylists() {
 export function getPlaylistById(id: number) {
   return apiClient.get<PlaylistResponse>(API_ENDPOINTS.playlistById(id))
 }
+
+export function getFavorites(token: string) {
+  return apiClient.get<PlaylistResponse>('/api/v1/me/favorites', { token })
+}

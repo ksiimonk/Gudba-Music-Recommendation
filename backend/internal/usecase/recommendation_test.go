@@ -39,6 +39,10 @@ func (f *fakeRecommendationRepository) ListCandidateTracks(ctx context.Context) 
 	return nil, errors.New("no tracks")
 }
 
+func (f *fakeRecommendationRepository) GetFavoriteTrackIDs(ctx context.Context, userID int64) (map[int64]bool, error) {
+	return nil, nil
+}
+
 func (f *fakeRecommendationRepository) ListPlaylistsWithTracks(ctx context.Context) ([]entity.Playlist, error) {
 	if f.listPlaylistsWithTracksFn != nil {
 		return f.listPlaylistsWithTracksFn(ctx)

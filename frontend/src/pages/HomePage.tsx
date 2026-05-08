@@ -12,7 +12,7 @@ import type { PlaylistRecommendation, TrackRecommendation } from '../api/recomme
 
 export function HomePage() {
   const { isLoading: authLoading, token, user } = useAuth()
-  const { playTrack, likeTrack, skipTrack } = usePlayer()
+  const { playTrack, toggleLike, skipTrack } = usePlayer()
 
   const [genres, setGenres] = useState<Genre[]>([])
   const [artists, setArtists] = useState<Artist[]>([])
@@ -142,7 +142,7 @@ export function HomePage() {
   }
 
   function handleLikeRec(rec: TrackRecommendation) {
-    likeTrack(rec.track)
+    toggleLike(rec.track)
   }
 
   function handleSkipRec(rec: TrackRecommendation) {
@@ -196,8 +196,8 @@ export function HomePage() {
           <h2 id="rec-title">Только для тебя</h2>
         </div>
         <div className="rec-track-list">
-          {recommendations.map((rec, index) => (
-            <div className="rec-track-row" key={`${rec.track.id}-${index}`}>
+          {recommendations.map((rec) => (
+            <div className="rec-track-row" key={rec.track.id}>
               <button className="rec-track-play" type="button" aria-label={`Слушать ${rec.track.title}`} onClick={() => handlePlayRec(rec)}>
                 ▶
               </button>
@@ -239,11 +239,11 @@ export function HomePage() {
           <h2 id="pl-recs-title">Плейлисты под твой вкус</h2>
         </div>
         <div className="playlist-grid">
-          {playlistRecs.map((plRec, index) => (
-            <div className="playlist-rec-card" key={`${plRec.playlist.id}-${index}`}>
+          {playlistRecs.map((plRec, i) => (
+            <div className="playlist-rec-card" key={plRec.playlist.id}>
               <PlaylistCard
                 playlist={plRec.playlist}
-                coverUrl={getPlaylistCoverUrl(index)}
+                coverUrl={getPlaylistCoverUrl(i)}
               />
               <span className="rec-explanation">{plRec.explanation}</span>
             </div>
@@ -257,14 +257,7 @@ export function HomePage() {
     return (
       <AppShell>
         <div className="home-page">
-          <header className="feed-header">
-            <div>
-              <span>Сегодня в Gudba</span>
-              <h1>Загружаем...</h1>
-            </div>
-          </header>
           <section className="feed-section">
-            <div className="section-heading"><h2>Популярные треки</h2></div>
             <p className="page-state">Загрузка данных...</p>
           </section>
         </div>
@@ -275,19 +268,9 @@ export function HomePage() {
   return (
     <AppShell>
       <div className="home-page">
-        <header className="feed-header">
-          <div>
-            <span>Сегодня в Gudba</span>
-            <h1>Музыка под твой день</h1>
-          </div>
-          <nav className="home-filters" aria-label="Фильтры главной">
-            <a className="active" href={ROUTES.home}>
-              Все
-            </a>
-            <a href={ROUTES.tracks}>Треки</a>
-            <a href={ROUTES.playlists}>Плейлисты</a>
-          </nav>
-        </header>
+        <h1 style={{ fontSize: 32, fontWeight: 700, margin: '0 0 24px' }}>
+          Добро пожаловать
+        </h1>
 
         {renderOnboardingCTA()}
 
@@ -305,6 +288,7 @@ export function HomePage() {
           <section className="feed-section" aria-labelledby="quick-access-title">
             <div className="section-heading">
               <h2 id="quick-access-title">Быстрый доступ</h2>
+              <a href={ROUTES.tracks}>Показать всё</a>
             </div>
             <div className="quick-grid">
               {quickAccess.map((item) => (

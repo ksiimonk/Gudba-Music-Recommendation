@@ -17,6 +17,14 @@ import (
 type fakePlaylistUseCase struct {
 	listPlaylistsFn   func(ctx context.Context) ([]entity.Playlist, error)
 	getPlaylistByIDFn func(ctx context.Context, id int64) (*entity.Playlist, error)
+	getFavoritesFn    func(ctx context.Context, userID int64) (*entity.Playlist, error)
+}
+
+func (f *fakePlaylistUseCase) GetFavorites(ctx context.Context, userID int64) (*entity.Playlist, error) {
+	if f.getFavoritesFn != nil {
+		return f.getFavoritesFn(ctx, userID)
+	}
+	return &entity.Playlist{ID: 1, UserID: userID, Name: "Мои любимые треки"}, nil
 }
 
 func (f *fakePlaylistUseCase) ListPlaylists(ctx context.Context) ([]entity.Playlist, error) {

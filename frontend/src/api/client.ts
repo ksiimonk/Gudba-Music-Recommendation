@@ -99,5 +99,3 @@ export const apiClient = {
   delete: <T>(path: string, options?: ApiRequestOptions) =>
     request<T>('DELETE', path, options),
 }
-
-export const apiGet = apiClient.get

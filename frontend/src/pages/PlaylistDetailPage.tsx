@@ -20,9 +20,8 @@ export function PlaylistDetailPage({ playlistId }: PlaylistDetailPageProps) {
     let isMounted = true
 
     if (isInvalidPlaylistId) {
-      return () => {
-        isMounted = false
-      }
+      setIsLoading(false)
+      return
     }
 
     getPlaylistById(playlistId)

@@ -17,6 +17,7 @@ type eventUseCase interface {
 	RecordTrackDislike(ctx context.Context, userID int64, trackID int64) error
 	RecordTrackSkip(ctx context.Context, userID int64, trackID int64) error
 	RecordPlaylistOpen(ctx context.Context, userID int64, playlistID int64) error
+	ToggleLike(ctx context.Context, userID, trackID int64) (liked bool, err error)
 }
 
 type EventHandler struct {
@@ -56,6 +57,33 @@ func (h *EventHandler) RecordEvent(c *gin.Context) {
 
 func (h *EventHandler) RecordTrackPlay(c *gin.Context) {
 	h.recordTrackEvent(c, "play")
+}
+
+func (h *EventHandler) ToggleTrackLike(c *gin.Context) {
+	claims, ok := getAuthClaims(c)
+	if !ok {
+		c.JSON(nethttp.StatusUnauthorized, gin.H{"message": "authorization required"})
+		return
+	}
+
+	id, ok := parseTrackID(c.Param("id"))
+	if !ok {
+		c.JSON(nethttp.StatusBadRequest, gin.H{"message": "invalid track id"})
+		return
+	}
+
+	liked, err := h.eventUseCase.ToggleLike(c.Request.Context(), claims.UserID, id)
+	if err != nil {
+		switch {
+		case errors.Is(err, usecase.ErrInvalidID):
+			c.JSON(nethttp.StatusBadRequest, gin.H{"message": err.Error()})
+		default:
+			c.JSON(nethttp.StatusInternalServerError, gin.H{"message": "failed to toggle like"})
+		}
+		return
+	}
+
+	c.JSON(nethttp.StatusOK, gin.H{"liked": liked})
 }
 
 func (h *EventHandler) RecordTrackLike(c *gin.Context) {

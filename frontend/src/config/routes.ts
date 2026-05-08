@@ -5,6 +5,7 @@ export const ROUTES = {
   onboarding: '/onboarding',
   tracks: '/tracks',
   playlists: '/playlists',
+  favorites: '/favorites',
 } as const
 
 export function getTrackRoute(id: number | string) {

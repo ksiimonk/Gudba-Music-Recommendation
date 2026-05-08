@@ -31,7 +31,7 @@ func TestRecordTrackPlaySuccess(t *testing.T) {
 			savedEvent = &saved
 			return nil
 		},
-	})
+	}, nil)
 
 	err := eventUseCase.RecordTrackPlay(context.Background(), 42, 1)
 	if err != nil {
@@ -54,8 +54,7 @@ func TestRecordTrackLikeSuccess(t *testing.T) {
 		createEventFn: func(_ context.Context, event *entity.Event) error {
 			return nil
 		},
-	})
-
+	}, nil)
 	err := eventUseCase.RecordTrackLike(context.Background(), 42, 1)
 	if err != nil {
 		t.Fatalf("RecordTrackLike() error = %v", err)
@@ -65,7 +64,7 @@ func TestRecordTrackLikeSuccess(t *testing.T) {
 func TestRecordEventInvalidEntityType(t *testing.T) {
 	t.Parallel()
 
-	eventUseCase := NewEventUseCase(&fakeEventRepository{})
+	eventUseCase := NewEventUseCase(&fakeEventRepository{}, nil)
 
 	err := eventUseCase.RecordEvent(context.Background(), 1, "album", "play", 1)
 	if !errors.Is(err, ErrInvalidEntityType) {
@@ -76,7 +75,7 @@ func TestRecordEventInvalidEntityType(t *testing.T) {
 func TestRecordEventInvalidEventType(t *testing.T) {
 	t.Parallel()
 
-	eventUseCase := NewEventUseCase(&fakeEventRepository{})
+	eventUseCase := NewEventUseCase(&fakeEventRepository{}, nil)
 
 	err := eventUseCase.RecordEvent(context.Background(), 1, "track", "share", 1)
 	if !errors.Is(err, ErrInvalidEventType) {
@@ -87,7 +86,7 @@ func TestRecordEventInvalidEventType(t *testing.T) {
 func TestRecordEventInvalidID(t *testing.T) {
 	t.Parallel()
 
-	eventUseCase := NewEventUseCase(&fakeEventRepository{})
+	eventUseCase := NewEventUseCase(&fakeEventRepository{}, nil)
 
 	err := eventUseCase.RecordEvent(context.Background(), 1, "track", "play", 0)
 	if !errors.Is(err, ErrInvalidID) {

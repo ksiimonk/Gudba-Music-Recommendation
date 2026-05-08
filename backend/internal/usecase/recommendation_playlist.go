@@ -43,6 +43,10 @@ func scorePlaylist(profile playlistProfile, userProfile *entity.UserProfile, lik
 		return 0, ""
 	}
 
+	if userProfile == nil || (len(userProfile.FavoriteGenreIDs) == 0 && len(userProfile.FavoriteArtistIDs) == 0) {
+		return calcPlaylistPopularity(profile.avgPopularity), "Популярный плейлист"
+	}
+
 	favGenres := makeSet(userProfile.FavoriteGenreIDs)
 	favArtists := makeSet(userProfile.FavoriteArtistIDs)
 

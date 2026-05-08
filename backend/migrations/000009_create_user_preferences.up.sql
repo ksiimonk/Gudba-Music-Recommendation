@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS user_preferences (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     preference_type VARCHAR NOT NULL,
-    reference_id INTEGER,
+    reference_id BIGINT,
     value VARCHAR,
     weight NUMERIC DEFAULT 1.0,
     created_at TIMESTAMPTZ DEFAULT now()

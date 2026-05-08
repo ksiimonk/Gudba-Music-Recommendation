@@ -1,17 +1,28 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { ROUTES } from '../config/routes'
+import { usePlayer } from '../context/PlayerContext'
 import { BottomNavigation } from './BottomNavigation'
 import { MiniPlayer } from './MiniPlayer'
 import { SidebarNavigation } from './SidebarNavigation'
 
-type AppShellProps = {
-  children: ReactNode
-}
+type AppShellProps = { children: ReactNode }
 
 export function AppShell({ children }: AppShellProps) {
-  const { isLoading, logout, user } = useAuth()
+  const { isLoading, logout, user, token } = useAuth()
+  const { loadFavorites } = usePlayer()
   const currentPath = window.location.pathname
+  const loaded = useRef(false)
+
+  useEffect(() => {
+    if (token && !loaded.current) {
+      loaded.current = true
+      loadFavorites(token)
+    }
+    if (!token) {
+      loaded.current = false
+    }
+  }, [token])
 
   function handleLogout() {
     logout()

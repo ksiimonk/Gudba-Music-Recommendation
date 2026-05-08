@@ -6,16 +6,24 @@ import type { Track } from '../types'
 type TrackRowProps = {
   track: Track
   index?: number
+  showLike?: boolean
 }
 
-export function TrackRow({ track, index }: TrackRowProps) {
+export function TrackRow({ track, index, showLike }: TrackRowProps) {
   const genres = track.genres.map((genre) => genre.name).join(', ')
-  const { playTrack } = usePlayer()
+  const { playTrack, toggleLike, isFavorited } = usePlayer()
+  const fav = isFavorited(track.id)
 
   function handlePlay(event: React.MouseEvent) {
     event.preventDefault()
     event.stopPropagation()
     playTrack(track)
+  }
+
+  function handleLike(event: React.MouseEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+    toggleLike(track)
   }
 
   function handleNavigate() {
@@ -40,6 +48,16 @@ export function TrackRow({ track, index }: TrackRowProps) {
         <span>{track.artist.name}</span>
         {genres && <small>{genres}</small>}
       </div>
+      {showLike && (
+        <button
+          className={`track-like-button ${fav ? 'liked' : ''}`}
+          type="button"
+          aria-label={fav ? 'Убрать из избранного' : 'Добавить в избранное'}
+          onClick={handleLike}
+        >
+          {fav ? '♥' : '♡'}
+        </button>
+      )}
       <time>{formatDuration(track.duration_ms)}</time>
     </div>
   )

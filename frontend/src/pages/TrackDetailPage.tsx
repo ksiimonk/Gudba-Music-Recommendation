@@ -11,7 +11,7 @@ type TrackDetailPageProps = {
 }
 
 export function TrackDetailPage({ trackId }: TrackDetailPageProps) {
-  const { playTrack, likeTrack, dislikeTrack, skipTrack, currentTrack, isPlaying } = usePlayer()
+  const { playTrack, toggleLike, dislikeTrack, skipTrack, currentTrack, isPlaying } = usePlayer()
   const isInvalidTrackId = !Number.isFinite(trackId) || trackId <= 0
   const [track, setTrack] = useState<Track | null>(null)
   const [isLoading, setIsLoading] = useState(!isInvalidTrackId)
@@ -21,9 +21,8 @@ export function TrackDetailPage({ trackId }: TrackDetailPageProps) {
     let isMounted = true
 
     if (isInvalidTrackId) {
-      return () => {
-        isMounted = false
-      }
+      setIsLoading(false)
+      return
     }
 
     getTrackById(trackId)
@@ -61,7 +60,7 @@ export function TrackDetailPage({ trackId }: TrackDetailPageProps) {
   }
 
   function handleLike() {
-    if (track) likeTrack(track)
+    if (track) toggleLike(track)
   }
 
   function handleDislike() {
@@ -93,7 +92,7 @@ export function TrackDetailPage({ trackId }: TrackDetailPageProps) {
         {track && !visibleError && (
           <>
             <section className="track-detail-hero">
-              <img src={track.cover_url} alt="" />
+              <img src={track.cover_url || '/placeholder-album.svg'} alt="" />
               <div>
                 <span>{track.artist.name}</span>
                 <h2>{track.title}</h2>

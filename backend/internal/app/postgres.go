@@ -25,5 +25,10 @@ func newPostgresDB(pgURL string) (*sql.DB, error) {
 		return nil, fmt.Errorf("connect to postgres from PG_URL: %w", err)
 	}
 
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetConnMaxIdleTime(1 * time.Minute)
+
 	return db, nil
 }

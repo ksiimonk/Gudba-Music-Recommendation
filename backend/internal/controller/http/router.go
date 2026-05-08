@@ -17,6 +17,7 @@ const (
 	registerRoute       = "/register"
 	loginRoute          = "/login"
 	meRoute             = "/me"
+	favoritesRoute      = "/me/favorites"
 	onboardingRoute     = "/me/onboarding"
 	profileRoute        = "/me/profile"
 	tracksRoute         = "/tracks"
@@ -111,6 +112,7 @@ func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHa
 		if playlistHandler != nil {
 			api.GET(playlistsRoute, playlistHandler.ListPlaylists)
 			api.GET(playlistDetailRoute, playlistHandler.GetPlaylist)
+			api.GET(favoritesRoute, authMiddleware.RequireAuth, playlistHandler.GetFavorites)
 		}
 
 		if genreHandler != nil {
@@ -129,7 +131,7 @@ func NewRouter(userHandler *UserHandler, authMiddleware *AuthMiddleware, routeHa
 		if eventHandler != nil {
 			api.POST(eventRoute, authMiddleware.RequireAuth, eventHandler.RecordEvent)
 			api.POST(trackPlayRoute, authMiddleware.RequireAuth, eventHandler.RecordTrackPlay)
-			api.POST(trackLikeRoute, authMiddleware.RequireAuth, eventHandler.RecordTrackLike)
+			api.POST(trackLikeRoute, authMiddleware.RequireAuth, eventHandler.ToggleTrackLike)
 			api.POST(trackDislikeRoute, authMiddleware.RequireAuth, eventHandler.RecordTrackDislike)
 			api.POST(trackSkipRoute, authMiddleware.RequireAuth, eventHandler.RecordTrackSkip)
 			api.POST(playlistOpenRoute, authMiddleware.RequireAuth, eventHandler.RecordPlaylistOpen)
